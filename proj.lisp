@@ -46,7 +46,7 @@
 		(setq non_zero_list nil)
 
 	)
-	;;(format t " ~a ~%" total_list )	
+	(format t " Compacta vertical ~a ~%" total_list )	
 	(return-from compactar-horizontal total_list)
 	)
 
@@ -61,14 +61,14 @@
 	)
 
 	(setq total_list (append non_zero_list zero_list  )) 
-	(format t " total list : ~a ~%" total_list )
+	(format t " compacta horizontal : ~a ~%" total_list )
 	(return-from compactar-vertical total_list)
 	)
 
 
 (defun compactar-tabuleiro (board)
 	
-	(setq form_list (transpose-board board))
+	(setq form_list (transpose-board board))  
 	(setq total_list (compactar-horizontal form_list))
 	(setq total_list2 (compactar-vertical total_list))
 	(setq transpose_list (transpose-board total_list2))
@@ -77,27 +77,35 @@
 )
 
 
+
+(setq new ( transpose-board '((1 0 4 0) (0 0 4 0) (3 0 4 2))))
+(setq new2 (compactar-horizontal new))
+(setq new3 (compactar-vertical new2))
+(setq new2 (transpose-board new3))
+
+
+
 (defun lista-convert-to-array (lista)
 	(setf state (make-array '(4 4) 
    		:initial-contents lista)
 	)
-    (write state)
+    
     state
     )
 
 
 (defun list_set_limits_size (board)
-	(setq array_size_col (list-length (car board) ))
-	(setq  array_size_lin (list-length board ))
-	(format t " ~a ~%"  array_size_col )
-	(format t " ~a ~%"  array_size_lin )
+	(setq *array_size_col* (list-length (car board) ))
+	(setq  *array_size_lin* (list-length board ))
+	(format t " ~a ~%"  *array_size_col* )
+	(format t " ~a ~%"  *array_size_lin* )
 	)
 
 (defun create-auxiliar-board ()
-	(setq *board_aux* (make-array (list array_size_lin array_size_col))) 
-	(dotimes (i array_size_lin)
-			(dotimes (j array_size_col)
-  			(setf (aref *board_aux* i j) 0 )
+	(setq *board_aux* (make-array (list *array_size_lin* *array_size_col*))) 
+	(dotimes (i *array_size_lin*)
+			(dotimes (j *array_size_col*)
+  				(setf (aref *board_aux* i j) 0 )
 			)
 	)
 	(return-from create-auxiliar-board *board_aux*)
@@ -112,80 +120,80 @@
 
 (defun fill_value  (posx posy array_board value) 
 	(setf (aref array_board posx posy) value )
+	array_board
 	)
 
 (defun list_is_member (lista linha coluna)
-	(find (list linha coluna) lista :test #'equal)
+	(return-from  list_is_member (find (list linha coluna) lista :test #'equal))
 
 	)
 
-(defun find_color_cluster_positions (posx posy board color list-neighbors ) 
-	(if (and (>= posx 0) (and (>= posy 0) (and (< posx array_size_lin) (< posy array_size_col))))
+(defun find_color_cluster_positions (posx posy array_board color list-neighbors ) 
+	(if (and (>= posx 0) (and (>= posy 0) (and (< posx *array_size_lin*) (< posy *array_size_col*))))
 		(progn 
-			(setq left_side (- posx 1))
-			(setq rigth_side (+ posx 1))
-			(setq top_side (- posy 1))
-			(setq bottom_side (+ posy 1))
-
-			(if (and (> posx 0) (and ( = (get_value left_side posy array_board) color ) (list_is_member list-neighbors left_side posy )))
+			(setq t_side (- posx 1))
+			(setq b_side (+ posx 1))
+			(setq l_side (- posy 1))
+			(setq r_side (+ posy 1))
+			;(format t " estou aqui ~%"  )
+			(if (and (> posx 0) (and ( = (get_value t_side posy array_board) color ) (not (list_is_member list-neighbors t_side posy ))))
 				(progn
-					(setq list-neighbors (append  list-neighbors (list left_side posy) ))
+					(setq list-neighbors (append  list-neighbors (list (list t_side posy) )))
 					(format t " ~a ~%"  list-neighbors )
-					(if (= (get_value left_side posy *board_aux*) 0)
+					(if (= (get_value t_side posy *board_aux*) 0)
 						(progn 
-							(fill_value left_side posy *board_aux* 1)
-							(find_color_cluster_positions left_side posy board color list-neighbors  ) 
+							(fill_value t_side posy *board_aux* 1)
+							(setq list-neighbors (find_color_cluster_positions t_side posy array_board color list-neighbors  ) )
+						)
+					) 
+				)
+			)
+			;(format t " estou aqui2 ~%"  )
+			(if (and (> posy 0)  (and ( = (get_value posx l_side array_board) color ) (not (list_is_member list-neighbors posx  l_side ))))
+				(progn
+					(setq list-neighbors (append  list-neighbors (list (list posx  l_side) )))
+					(format t " ~a ~%"  list-neighbors )
+					(if (= (get_value posx  l_side *board_aux*) 0)
+						(progn 
+							(fill_value posx  l_side  *board_aux* 1)
+							(setq list-neighbors  (find_color_cluster_positions posx  l_side array_board color list-neighbors  ) )
 						)
 					) 
 				)
 			)
 
-			(if (and (> posy 0)  (and ( = (get_value posx top_side array_board) color ) (list_is_member list-neighbors posx  top_side )))
+			(if (and (< posx (- *array_size_lin* 1))  (and ( = (get_value b_side posy array_board) color ) (not (list_is_member list-neighbors b_side posy ))))
 				(progn
-					(setq list-neighbors (append  list-neighbors (list posx  top_side) ))
+					(setq list-neighbors (append  list-neighbors  (list (list b_side posy) )))
 					(format t " ~a ~%"  list-neighbors )
-					(if (= (get_value posx  top_side *board_aux*) 0)
+					(if (= (get_value b_side posy *board_aux*) 0)
 						(progn 
-							(fill_value posx  top_side  *board_aux* 1)
-							(find_color_cluster_positions posx  top_side board color list-neighbors  ) 
+							(fill_value b_side posy  *board_aux* 1)
+							(setq list-neighbors  (find_color_cluster_positions b_side posy array_board color list-neighbors  ) )
 						)
 					) 
 				)
 			)
 
-			(if (and (> posx (- *array_size_lin* 1))  (and ( = (get_value rigth_side posy array_board) color ) (list_is_member list-neighbors rigth_side posy )))
+			(if (and (< posy (- *array_size_col* 1))  (and ( = (get_value posx r_side array_board) color ) (not (list_is_member list-neighbors posx r_sidey ))))
 				(progn
-					(setq list-neighbors (append  list-neighbors (list rigth_side posy) ))
+					(setq list-neighbors (append  list-neighbors  (list (list posx r_side ) )))
 					(format t " ~a ~%"  list-neighbors )
-					(if (= (get_value rigth_side posy *board_aux*) 0)
+					(if (= (get_value posx r_side *board_aux*) 0)
 						(progn 
-							(fill_value rigth_side posy  *board_aux* 1)
-							(find_color_cluster_positions rigth_side posy board color list-neighbors  ) 
+							(fill_value posx rside  *board_aux* 1)
+							(setq list-neighbors  (find_color_cluster_positions posx r_side array_board color list-neighbors  ) )
 						)
 					) 
 				)
 			)
-
-			(if (and (> posy (- *array_size_col 1))  (and ( = (get_value posx bottom_side array_board) color ) (list_is_member list-neighbors posx bottom_sidey )))
-				(progn
-					(setq list-neighbors (append  list-neighbors (list posx bottom_side ) ))
-					(format t " ~a ~%"  list-neighbors )
-					(if (= (get_value posx bottom_side *board_aux*) 0)
-						(progn 
-							(fill_value posx bottom_side  *board_aux* 1)
-							(find_color_cluster_positions posx bottom_side board color list-neighbors  ) 
-						)
-					) 
-				)
-			)
-
 
 
 			(if (= (list-length list-neighbors) 0 )
 				(setq list-neighbors (append  list-neighbors (list posx posy ) ))
 			)
 			
-
+			;(format t " estou aqui3 ~%"  )
 		)
 	)
 	list-neighbors
@@ -197,33 +205,35 @@
 
 (defun find_color_blocks (board)
 	(setq empList (make-hash-table)) 
-	(setq counter (+ counter 0) )
+	(setq counter  0) 
 	(setq array_main (lista-convert-to-array board))
 	;;(setq *board_aux* (create-auxiliar-board)  )
-	(dotimes (i array_size_lin)
-		(dotimes (j array_size_col)
+	(dotimes (i *array_size_lin*)
+		(dotimes (j *array_size_col*)
 			(if ( = (get_value i j *board_aux*) 0)
 				(progn
 					(fill_value i j  *board_aux* 1)
-					
 					(if (/= (get_value i j array_main ) 0)
 						(progn 
-							(setf (gethash 'counter empList) (find_color_cluster_positions i j array_main color list-neighbors))
+							(setq list-neighbors '())
+							(setq color (get_value i j array_main) )
+							(setq lista (find_color_cluster_positions i j array_main color list-neighbors) )
+							(setf (gethash counter empList) lista )
+							;(format t " estou aqui4 ~%"  )
 							(setq counter (+ counter 1) )
 						)
 					) 
 				)
-				
 			)
-			;(format t " ~a ~%"  )
-				; 
 		)
 	)
+empList	
+)
 
-
-	)
-
-
+;(trace find_color_blocks )
+;(trace find_color_cluster_positions)
+;(trace list_is_member)
+;(trace fill_value)
 
 
 
@@ -253,15 +263,25 @@
 (setq board_comp (compactar-tabuleiro board))
 (list_set_limits_size board )
 ( create-auxiliar-board)
-(find_color_blocks board)
+
+(format t " ~a ~%"  (find_color_blocks board))
 
 ;;(setq board_comp (compactar-tabuleiro (lista-convert-to-array  board_comp )))
 
+(defun 2d-array-to-list (array)
+  (setf lisa (loop for i below (array-dimension array 0)
+        collect (loop for j below (array-dimension array 1)
+                      collect (aref array i j))))
+  
+  (return-from 2d-array-to-list  lisa)
+)
 
 
+;;(list_set_limits_size '( )
 
-;;(list_set_limits_size '((1 0 4 0) (0 0 4 0) (3 0 4 0)) )
+(setq array (lista-convert-to-array board))
 
+(format t " ~a ~%"  (2d-array-to-list array))
 
 
 
