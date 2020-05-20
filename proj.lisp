@@ -198,6 +198,7 @@
 	(setq counter  0) 
 	(setq array_main (lista-convert-to-array board))
 	;;(setq *board_aux* (create-auxiliar-board)  )
+
 	(dotimes (i *array_size_lin*)
 		(dotimes (j *array_size_col*)
 			(if ( = (get_value i j *board_aux*) 0)
@@ -217,6 +218,7 @@
 			)
 		)
 	)
+
 	empList	
 )
 
@@ -266,14 +268,27 @@
 ;		self.initial = SGState(b)
 
 (defmethod actions ((s  SGState))
-	(setf possible_actions (board_find_groups (SGState-board s)))
-	(loop for a in possible_actions do
-		(if (> (list-length a) 1)
-			(setq actions (append actions (list a)) )
-		)
-	)
+	
+
+	(setf possible_actions (find_color_blocks (SGState-board s)))
+	(format t " Actions ~a ~%" possible_actions)
+	(setq actions NIL )
+	(loop for v being the hash-value in possible_actions
+      do 
+      	(progn 
+      		(if (> (list-length v) 1)
+      			(setq actions (append actions (list v)) )
+      		)
+
+      	)
+      	
+      )
+       
+	(format t " Actions ~a ~%" actions)
 	actions
 )
+
+
 
 (defmethod goal_test ((s SGState))
 	(setq idx_last_line (- (list-length (SGState-board s)) 1))
@@ -295,10 +310,15 @@
 	(make-instance 'SGState :board b)
 )
 
-;(defparameter s1 (make-instance 'SGState :board '((1 0 4 0) (0 0 4 0) (3 0 4 0) (0 0 1 0)) ))
-;(defparameter sg1 (make-instance 'SameGame :board '((1 0 4 0) (0 0 4 0) (3 0 4 0) (0 0 1 0)) ))
-;(setq remove_aux '((0 0) (0 2) (2 0)))
-;(write (SGState-board (result (SameGame-initial sg1) remove_aux))) (terpri)
+(defparameter s1 (make-instance 'SGState :board '((1 0 4 0) (0 0 4 0) (3 0 4 0) (0 0 1 0)) ))
+( list_set_limits_size '((1 0 4 0) (0 0 4 0) (3 0 4 0) (0 0 1 0)))
+(create-auxiliar-board)
+(actions s1)
+
+(defparameter sg1 (make-instance 'SameGame :board '((1 1 4 0) (1 0 4 0) (3 0 4 0) (0 0 1 0)) ))
+(create-auxiliar-board)
+(setq remove_aux '((0 0) (0 1) (1 0)))
+(write (SGState-board (result (SameGame-initial sg1) remove_aux))) (terpri)
 
 
 ;; ----------------------------------------------------------------------------------------------------------
