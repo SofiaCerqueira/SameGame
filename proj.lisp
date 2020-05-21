@@ -6,8 +6,8 @@
 (defvar *array_size_col* )
 (defvar *array_size_lin* )
 (defvar *board_aux* )
-(defvar *start-clock* (get-internal-run-time))
-(defconstant MAX_TIME 280)
+(defvar *start-clock* )
+(defconstant MAX_TIME 300)
 
 (defun transpose-board (board)
 	(setq new_list nil)
@@ -27,7 +27,7 @@
 		(setq new_list nil)
 		(setq rest_list nil)
 	)
-	(format t " ~a ~%" form_list)
+	;(format t " ~a ~%" form_list)
 	(return-from transpose-board form_list)
 )
 
@@ -50,7 +50,7 @@
 
 	)
 	; Era o nome das funções que estava trocada ou a string embaixo?
-	(format t " Compacta vertical ~a ~%" total_list )	
+	;(format t " Compacta vertical ~a ~%" total_list )	
 	(return-from compactar-horizontal total_list)
 )
 
@@ -63,7 +63,7 @@
 			)
 	)
 	(setq total_list (append non_zero_list zero_list  )) 
-	(format t " compacta horizontal : ~a ~%" total_list )
+	;(format t " compacta horizontal : ~a ~%" total_list )
 	(return-from compactar-vertical total_list)
 )
 
@@ -94,8 +94,8 @@
 (defun list_set_limits_size (board)
 	(setq *array_size_col* (list-length (car board) ))
 	(setq  *array_size_lin* (list-length board ))
-	(format t " ~a ~%"  *array_size_col* )
-	(format t " ~a ~%"  *array_size_lin* )
+	;(format t " ~a ~%"  *array_size_col* )
+	;(format t " ~a ~%"  *array_size_lin* )
 )
 
 
@@ -132,7 +132,7 @@
 	(if (and (>= posx 0) (and (>= posy 0) (and (< posx *array_size_lin*) (< posy *array_size_col*))))
 
 		(progn 
-			(format t " ~a ~a~%" posx posy)
+			;(format t " ~a ~a~%" posx posy)
 			(setq t_side (- posx 1))
 			(setq b_side (+ posx 1))
 			(setq l_side (- posy 1))
@@ -140,19 +140,19 @@
 
 			(setq bound_rigth (- *array_size_col* 1))
 			(setq bound_bottom (- *array_size_lin* 1))
-			(format t " bb ~a ~a~%" bound_rigth bound_bottom)
+			;(format t " bb ~a ~a~%" bound_rigth bound_bottom)
 
 			;(format t " estou aqui ~%"  )
 			(if (> posx 0) 
 				(progn 
-					(format t " z1 ~a ~a~%" t_side posy)
+					;(format t " z1 ~a ~a~%" t_side posy)
 					(if (and ( = (get_value t_side posy array_board) color ) (not (list_is_member list-neighbors t_side posy )))
 						(progn
 							(setq list-neighbors (append  list-neighbors (list (list t_side posy) )))
 							;(format t " ~a ~%"  list-neighbors )
 							(if (= (get_value t_side posy *board_aux*) 0)
 								(progn 
-									(format t " x1 ~a ~a~%" t_side posy)
+									;(format t " x1 ~a ~a~%" t_side posy)
 									(fill_value t_side posy *board_aux* 1)
 									(setq list-neighbors (find_color_cluster_positions t_side posy array_board color list-neighbors  ) )
 								)
@@ -164,14 +164,14 @@
 			;(format t " estou aqui2 ~%"  )
 			(if  (> posy 0)  
 				(progn 
-					(format t " z2 ~a ~a~%" posx  l_side)
+					;(format t " z2 ~a ~a~%" posx  l_side)
 					(if (and ( = (get_value posx l_side array_board) color ) (not (list_is_member list-neighbors posx  l_side )))
 						(progn
 							(setq list-neighbors (append  list-neighbors (list (list posx  l_side) )))
 							;(format t " ~a ~%"  list-neighbors )
 							(if (= (get_value posx  l_side *board_aux*) 0)
 								(progn 
-									(format t " x2 ~a ~a~%" posx  l_side)
+									;(format t " x2 ~a ~a~%" posx  l_side)
 									(fill_value posx  l_side  *board_aux* 1)
 									(setq list-neighbors  (find_color_cluster_positions posx  l_side array_board color list-neighbors  ) )
 								)
@@ -183,14 +183,14 @@
 
 			(if  (<= b_side bound_bottom)  
 				(progn 
-					(format t "z3  ~a ~a~%" b_side posy)
+					;(format t "z3  ~a ~a~%" b_side posy)
 					(if (and ( = (get_value b_side posy array_board) color ) (not (list_is_member list-neighbors b_side posy )))
 						(progn
 							(setq list-neighbors (append  list-neighbors  (list (list b_side posy) )))
 							;(format t " ~a ~%"  list-neighbors )
 							(if (= (get_value b_side posy *board_aux*) 0)
 								(progn 
-									(format t "x3  ~a ~a~%" b_side posy)
+									;(format t "x3  ~a ~a~%" b_side posy)
 									(fill_value b_side posy  *board_aux* 1)
 									(setq list-neighbors  (find_color_cluster_positions b_side posy array_board color list-neighbors  ) )
 								)
@@ -202,7 +202,7 @@
 
 			(if (<= r_side bound_rigth)  
 				(progn 
-					(format t "z4  ~a ~a~%" posx r_side)
+					;(format t "z4  ~a ~a~%" posx r_side)
 					(if (and ( = (get_value posx r_side array_board) color ) (not (list_is_member list-neighbors posx r_side )))
 						(progn
 							(setq list-neighbors (append  list-neighbors  (list (list posx r_side ) )))
@@ -210,7 +210,7 @@
 							(if (= (get_value posx r_side *board_aux*) 0)
 								(progn 
 									(fill_value posx r_side  *board_aux* 1)
-									(format t "x4  ~a ~a~%" posx r_side)
+									;(format t "x4  ~a ~a~%" posx r_side)
 									(setq list-neighbors  (find_color_cluster_positions posx r_side array_board color list-neighbors  ) )
 								)
 							) 
@@ -242,7 +242,7 @@
 					(fill_value i j  *board_aux* 1)
 					(if (/= (get_value i j array_main ) 0)
 						(progn 
-							(format t " f ~a ~a~%" i j)
+							;(format t " f ~a ~a~%" i j)
 							(setq list-neighbors '())
 							(setq color (get_value i j array_main) )
 							(setq lista (find_color_cluster_positions i j array_main color list-neighbors) )
@@ -261,7 +261,7 @@
 ;(trace find_color_blocks )
 
 (defun board_remove_group (board group)
-	(format t " group ~a ~%" group)
+	;(format t " group ~a ~%" group)
 	(setq newBoard nil)
 	(loop for line in board do
 		(setq copy_list (copy-tree line))		; function copy-list if we intend to preserve the elements
@@ -275,7 +275,7 @@
 		(setf (nth c (nth l newBoard)) 0)
 	)
 	(setq newBoard (compactar-tabuleiro newBoard))
-	(format t " new board removed ~a ~%" newBoard)
+	;(format t " new board removed ~a ~%" newBoard)
 	newBoard
 
 )
@@ -312,20 +312,20 @@
    ;(actions '() (:type list))
 )
 
-(defun gera-sucessores (estado)
-	(format t " Actions aqui5 ~%" )
+(defun lista-operadores (estado)
+	;(format t " Actions aqui5 ~%" )
 
 	(setf possible_actions (find_color_blocks (node-board estado)))
-	(format t " Actions aqui7 ~%" )
-	(format t " Actions ~a ~%" possible_actions)
+	;(format t " Actions aqui7 ~%" )
+	;(format t " Actions ~a ~%" possible_actions)
 	(setq actions NIL )
 	(loop for v being the hash-value in possible_actions
       do 
       	(progn 
       		(if (> (list-length v) 1)
       			(progn 
-	      			(format t " board ~a ~%" (node-board estado))
-	      			(format t " group ~a ~%" v)
+	      			;(format t " board ~a ~%" (node-board estado))
+	      			;(format t " group ~a ~%" v)
 	      			(setq suc-state (board_remove_group (node-board estado)  v))
 	      			(setq board-suc (make-node :board  suc-state))
 	      			(setq actions (append actions (list board-suc)) )
@@ -336,12 +336,12 @@
       	
       )
     ;(setf (node-actions estado) actions)  
-	
+	(format t " Actions ~a ~%" actions)
 	actions
 )
 
 
-(trace gera-sucessores)
+(trace lista-operadores)
 ;(defmethod objectivo? ((s SGState))
 ;	(format t " Actions aqui3 ~%" )
 ;	(setq idx_last_line (- (list-length (SGState-board s)) 1))
@@ -392,10 +392,11 @@
   (return-from 2d-array-to-list  lisa)
 )
 
+(defun start-clock ()
+	(setq *start-clock* (get-internal-run-time)))
 
-
-(defun resolve-same-game (problema algoritmo)
-  	
+(defun same-game (problema algoritmo)
+  	(start-clock)
 	( setq board-init (make-node :board  problema))
 	
 	(list_set_limits_size problema)
@@ -405,19 +406,19 @@
     (cond              
                 (
                 (string-equal algoritmo "profundidade")
-                 (time (procura (cria-problema board-init (list #'gera-sucessores) :objectivo? #'objectivo? :estado= #'equal) 
+                 (time (procura (cria-problema board-init (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal) 
 									"profundidade" :espaco-em-arvore? T)))
                 
                 
                 ((string-equal algoritmo "largura")
-                 (time (procura (cria-problema board-init (list #'gera-sucessores) :objectivo? #'objectivo? :estado= #'equal) 
+                 (time (procura (cria-problema board-init (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal) 
 									"largura" :espaco-em-arvore? T)))
                 
  
-  )
+    )
  )
 
 
-(resolve-same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "profundidade")
+(same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "profundidade")
 
-;(resolve-same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "largura")
+(same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "largura")
