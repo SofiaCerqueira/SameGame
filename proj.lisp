@@ -1,10 +1,13 @@
 (in-package :user)
-
+(compile-file "procura.lisp")
+(load "procura")
 ;;https://github.com/srps/SameGame/blob/master/g012.lisp
 
 (defvar *array_size_col* )
 (defvar *array_size_lin* )
 (defvar *board_aux* )
+(defvar *start-clock* (get-internal-run-time))
+(defconstant MAX_TIME 280)
 
 (defun transpose-board (board)
 	(setq new_list nil)
@@ -81,7 +84,7 @@
 ;(setq new2 (transpose-board new3))
 
 (defun lista-convert-to-array (lista)
-	(setf state (make-array '(4 4) 
+	(setf state (make-array (list *array_size_lin* *array_size_col*)
    		:initial-contents lista)
 	)    
     state
@@ -125,66 +128,98 @@
 
 
 (defun find_color_cluster_positions (posx posy array_board color list-neighbors ) 
+	
 	(if (and (>= posx 0) (and (>= posy 0) (and (< posx *array_size_lin*) (< posy *array_size_col*))))
+
 		(progn 
+			(format t " ~a ~a~%" posx posy)
 			(setq t_side (- posx 1))
 			(setq b_side (+ posx 1))
 			(setq l_side (- posy 1))
 			(setq r_side (+ posy 1))
+
+			(setq bound_rigth (- *array_size_col* 1))
+			(setq bound_bottom (- *array_size_lin* 1))
+			(format t " bb ~a ~a~%" bound_rigth bound_bottom)
+
 			;(format t " estou aqui ~%"  )
-			(if (and (> posx 0) (and ( = (get_value t_side posy array_board) color ) (not (list_is_member list-neighbors t_side posy ))))
-				(progn
-					(setq list-neighbors (append  list-neighbors (list (list t_side posy) )))
-					(format t " ~a ~%"  list-neighbors )
-					(if (= (get_value t_side posy *board_aux*) 0)
-						(progn 
-							(fill_value t_side posy *board_aux* 1)
-							(setq list-neighbors (find_color_cluster_positions t_side posy array_board color list-neighbors  ) )
+			(if (> posx 0) 
+				(progn 
+					(format t " z1 ~a ~a~%" t_side posy)
+					(if (and ( = (get_value t_side posy array_board) color ) (not (list_is_member list-neighbors t_side posy )))
+						(progn
+							(setq list-neighbors (append  list-neighbors (list (list t_side posy) )))
+							;(format t " ~a ~%"  list-neighbors )
+							(if (= (get_value t_side posy *board_aux*) 0)
+								(progn 
+									(format t " x1 ~a ~a~%" t_side posy)
+									(fill_value t_side posy *board_aux* 1)
+									(setq list-neighbors (find_color_cluster_positions t_side posy array_board color list-neighbors  ) )
+								)
+							) 
 						)
-					) 
+					)
 				)
 			)
 			;(format t " estou aqui2 ~%"  )
-			(if (and (> posy 0)  (and ( = (get_value posx l_side array_board) color ) (not (list_is_member list-neighbors posx  l_side ))))
-				(progn
-					(setq list-neighbors (append  list-neighbors (list (list posx  l_side) )))
-					(format t " ~a ~%"  list-neighbors )
-					(if (= (get_value posx  l_side *board_aux*) 0)
-						(progn 
-							(fill_value posx  l_side  *board_aux* 1)
-							(setq list-neighbors  (find_color_cluster_positions posx  l_side array_board color list-neighbors  ) )
+			(if  (> posy 0)  
+				(progn 
+					(format t " z2 ~a ~a~%" posx  l_side)
+					(if (and ( = (get_value posx l_side array_board) color ) (not (list_is_member list-neighbors posx  l_side )))
+						(progn
+							(setq list-neighbors (append  list-neighbors (list (list posx  l_side) )))
+							;(format t " ~a ~%"  list-neighbors )
+							(if (= (get_value posx  l_side *board_aux*) 0)
+								(progn 
+									(format t " x2 ~a ~a~%" posx  l_side)
+									(fill_value posx  l_side  *board_aux* 1)
+									(setq list-neighbors  (find_color_cluster_positions posx  l_side array_board color list-neighbors  ) )
+								)
+							) 
 						)
-					) 
+					)
 				)
 			)
 
-			(if (and (< posx (- *array_size_lin* 1))  (and ( = (get_value b_side posy array_board) color ) (not (list_is_member list-neighbors b_side posy ))))
-				(progn
-					(setq list-neighbors (append  list-neighbors  (list (list b_side posy) )))
-					(format t " ~a ~%"  list-neighbors )
-					(if (= (get_value b_side posy *board_aux*) 0)
-						(progn 
-							(fill_value b_side posy  *board_aux* 1)
-							(setq list-neighbors  (find_color_cluster_positions b_side posy array_board color list-neighbors  ) )
+			(if  (<= b_side bound_bottom)  
+				(progn 
+					(format t "z3  ~a ~a~%" b_side posy)
+					(if (and ( = (get_value b_side posy array_board) color ) (not (list_is_member list-neighbors b_side posy )))
+						(progn
+							(setq list-neighbors (append  list-neighbors  (list (list b_side posy) )))
+							;(format t " ~a ~%"  list-neighbors )
+							(if (= (get_value b_side posy *board_aux*) 0)
+								(progn 
+									(format t "x3  ~a ~a~%" b_side posy)
+									(fill_value b_side posy  *board_aux* 1)
+									(setq list-neighbors  (find_color_cluster_positions b_side posy array_board color list-neighbors  ) )
+								)
+							) 
 						)
-					) 
+					)
 				)
 			)
 
-			(if (and (< posy (- *array_size_col* 1))  (and ( = (get_value posx r_side array_board) color ) (not (list_is_member list-neighbors posx r_sidey ))))
-				(progn
-					(setq list-neighbors (append  list-neighbors  (list (list posx r_side ) )))
-					(format t " ~a ~%"  list-neighbors )
-					(if (= (get_value posx r_side *board_aux*) 0)
-						(progn 
-							(fill_value posx rside  *board_aux* 1)
-							(setq list-neighbors  (find_color_cluster_positions posx r_side array_board color list-neighbors  ) )
+			(if (<= r_side bound_rigth)  
+				(progn 
+					(format t "z4  ~a ~a~%" posx r_side)
+					(if (and ( = (get_value posx r_side array_board) color ) (not (list_is_member list-neighbors posx r_side )))
+						(progn
+							(setq list-neighbors (append  list-neighbors  (list (list posx r_side ) )))
+							;(format t " ~a ~%"  list-neighbors )
+							(if (= (get_value posx r_side *board_aux*) 0)
+								(progn 
+									(fill_value posx r_side  *board_aux* 1)
+									(format t "x4  ~a ~a~%" posx r_side)
+									(setq list-neighbors  (find_color_cluster_positions posx r_side array_board color list-neighbors  ) )
+								)
+							) 
 						)
-					) 
+					)
 				)
 			)
 			(if (= (list-length list-neighbors) 0 )
-				(setq list-neighbors (append  list-neighbors (list posx posy ) ))
+				(setq list-neighbors (list (append  list-neighbors (list posx posy ) )))
 			)
 			;(format t " estou aqui3 ~%"  )
 		)
@@ -192,7 +227,8 @@
 	list-neighbors
 )
 
-
+;(trace find_color_cluster_positions )
+;(trace get_value)
 (defun find_color_blocks (board)
 	(setq empList (make-hash-table)) 
 	(setq counter  0) 
@@ -206,6 +242,7 @@
 					(fill_value i j  *board_aux* 1)
 					(if (/= (get_value i j array_main ) 0)
 						(progn 
+							(format t " f ~a ~a~%" i j)
 							(setq list-neighbors '())
 							(setq color (get_value i j array_main) )
 							(setq lista (find_color_cluster_positions i j array_main color list-neighbors) )
@@ -221,9 +258,10 @@
 
 	empList	
 )
-
+;(trace find_color_blocks )
 
 (defun board_remove_group (board group)
+	(format t " group ~a ~%" group)
 	(setq newBoard nil)
 	(loop for line in board do
 		(setq copy_list (copy-tree line))		; function copy-list if we intend to preserve the elements
@@ -237,88 +275,110 @@
 		(setf (nth c (nth l newBoard)) 0)
 	)
 	(setq newBoard (compactar-tabuleiro newBoard))
+	(format t " new board removed ~a ~%" newBoard)
 	newBoard
+
 )
 
 
-(defclass SGState()
-	((_board
-		:initarg :board
-		:accessor SGState-board)
-	)
-)
+;(defclass SGState()
+;	((_board
+;		:initarg :board
+;		:accessor SGState-board)
+;;	)
+;)
 
-(defmethod lessThan ((o1 SGState) (o2 SGState))
-	(< (list-length (SGState-board o1)) (list-length (SGState-board o2)) )
-)
+;(defmethod lessThan ((o1 SGState) (o2 SGState))
+;	(< (list-length (SGState-board o1)) (list-length (SGState-board o2)) )
+;)
 
 
-(defclass SameGame()	; FIXME inherits from Problem
-	((_board :initarg :board :accessor SameGame-board)
-	 (_initial :accessor SameGame-initial))
-)
+;(defclass SameGame()	; FIXME inherits from Problem
+;	((_board :initarg :board :accessor SameGame-board)
+;	 (_initial :accessor SameGame-initial))
+;)
 
-(defmethod initialize-instance :after ((o SameGame) &key)
-	(setf (SameGame-initial o) (make-instance 'SGState :board (SameGame-board o)))
-)
+;(defmethod initialize-instance :after ((o SameGame) &key)
+;	(setf (SameGame-initial o) (make-instance 'SGState :board (SameGame-board o)))
+;)
 ; Este constructor todo só para ter:
 ; class same_game(Problem):
 ; 	def __init__(self, b):
 ; 		self.board = b
 ;		self.initial = SGState(b)
 
-(defmethod actions ((s  SGState))
-	
+(defstruct node 
+   board 
+   ;(actions '() (:type list))
+)
 
-	(setf possible_actions (find_color_blocks (SGState-board s)))
+(defun gera-sucessores (estado)
+	(format t " Actions aqui5 ~%" )
+
+	(setf possible_actions (find_color_blocks (node-board estado)))
+	(format t " Actions aqui7 ~%" )
 	(format t " Actions ~a ~%" possible_actions)
 	(setq actions NIL )
 	(loop for v being the hash-value in possible_actions
       do 
       	(progn 
       		(if (> (list-length v) 1)
-      			(setq actions (append actions (list v)) )
+      			(progn 
+	      			(format t " board ~a ~%" (node-board estado))
+	      			(format t " group ~a ~%" v)
+	      			(setq suc-state (board_remove_group (node-board estado)  v))
+	      			(setq board-suc (make-node :board  suc-state))
+	      			(setq actions (append actions (list board-suc)) )
+	      		)
       		)
 
       	)
       	
       )
-       
-	(format t " Actions ~a ~%" actions)
+    ;(setf (node-actions estado) actions)  
+	
 	actions
 )
 
 
+(trace gera-sucessores)
+;(defmethod objectivo? ((s SGState))
+;	(format t " Actions aqui3 ~%" )
+;	(setq idx_last_line (- (list-length (SGState-board s)) 1))
+;	(setq line_board (nth idx_last_line SGState-board s))
+;	(loop for pos in line_board do
+;		(if (/= pos 0)
+;			(return-from goal_test nil)
+;		)
+;	)
+;	t
+;)
 
-(defmethod goal_test ((s SGState))
-	(setq idx_last_line (- (list-length (SGState-board s)) 1))
-	(setq line_board (nth idx_last_line SGState-board s))
-	(loop for pos in line_board do
-		(if (/= pos 0)
-			(return-from goal_test nil)
-		)
-	)
-	t
+(defun objectivo? (state)
+	(<= (* MAX_TIME INTERNAL-TIME-UNITS-PER-SECOND) (- (get-internal-run-time) *start-clock*))
 )
 
-(defmethod path_cost ((c integer) (s1 SGState) (s2 SGState) (action list))
-	(+ c 1)
-)
+;(defun custo ((c integer) (s1 SGState) (s2 SGState) (action list))
+;	(format t " Actions aqui42 ~%" )
+;	(+ c 1)
+;)
 
-(defmethod result ((s SGState) (action list))
-	(setq b (board_remove_group (SGState-board s) action))
-	(make-instance 'SGState :board b)
-)
+;(defmethod result ((s SGState) (action list))
+;	(format t " Actions aqui ~%" )
+;	(setq b (board_remove_group (SGState-board s) action))
+;	(make-instance 'SGState :board b)
+;	(format t " Actions aqui2 ~%" )
+;)
 
-(defparameter s1 (make-instance 'SGState :board '((1 0 4 0) (0 0 4 0) (3 0 4 0) (0 0 1 0)) ))
-( list_set_limits_size '((1 0 4 0) (0 0 4 0) (3 0 4 0) (0 0 1 0)))
-(create-auxiliar-board)
-(actions s1)
+;(defparameter s1 (make-instance 'SGState :board '((1 0 4 0) (0 0 4 0) (3 0 4 0) (0 0 1 0)) ))
+;( list_set_limits_size '((1 0 4 0) (0 0 4 0) (3 0 4 0) (0 0 1 0)))
+;(create-auxiliar-board)
+;(actions s1)
 
-(defparameter sg1 (make-instance 'SameGame :board '((1 1 4 0) (1 0 4 0) (3 0 4 0) (0 0 1 0)) ))
-(create-auxiliar-board)
-(setq remove_aux '((0 0) (0 1) (1 0)))
-(write (SGState-board (result (SameGame-initial sg1) remove_aux))) (terpri)
+;(defparameter sg1 (make-instance 'SameGame :board '((1 1 4 0) (1 0 4 0) (3 0 4 0) (0 0 1 0)) ))
+;(create-auxiliar-board)
+;(setq remove_aux '((0 0) (0 1) (1 0)))
+;(write (SGState-board (result (SameGame-initial sg1) remove_aux))) (terpri)
 
 
 ;; ----------------------------------------------------------------------------------------------------------
@@ -332,41 +392,32 @@
   (return-from 2d-array-to-list  lisa)
 )
 
-;;def board_find_groups(board):
-;;    i =0
-;;    j =0
-;;    index_list = 0
-;;    board_aux = []
-;;    board_aux = board_auxiliar(board)
-;;    groups_total = []
-;;    d =[]
-;    for i in range(len(board)):
-;        for j in range(len(board[0])):
-;            neighbors=[]
-;            if(board_aux[i][j]!=1):
-;                board_aux[i][j] = 1
-;                if(board[i][j]!=0):
-;                    groups_total.insert(index_list, find_neighbors(i, j, neighbors, board, board_aux))
-;;                    index_list +=1
-;
-;    #print(groups_total)
-;    return groups_total
 
 
-;(format t " ~a ~%"  :(- 3 1))
+(defun resolve-same-game (problema algoritmo)
+  	
+	( setq board-init (make-node :board  problema))
+	
+	(list_set_limits_size problema)
+	
+	(create-auxiliar-board)
+	
+    (cond              
+                (
+                (string-equal algoritmo "profundidade")
+                 (time (procura (cria-problema board-init (list #'gera-sucessores) :objectivo? #'objectivo? :estado= #'equal) 
+									"profundidade" :espaco-em-arvore? T)))
+                
+                
+                ((string-equal algoritmo "largura")
+                 (time (procura (cria-problema board-init (list #'gera-sucessores) :objectivo? #'objectivo? :estado= #'equal) 
+									"largura" :espaco-em-arvore? T)))
+                
+ 
+  )
+ )
 
-;(setq board_comp (compactar-tabuleiro board))
-;(list_set_limits_size board)
-;(create-auxiliar-board)
 
-;(format t " ~a ~%"  (find_color_blocks board))
+(resolve-same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "profundidade")
 
-;(setq board_comp (compactar-tabuleiro (lista-convert-to-array  board_comp )))
-
-;;(list_set_limits_size '( )
-
-;(setq array (lista-convert-to-array board))
-
-;(format t " ~a ~%"  (2d-array-to-list array))
-
-;;(compactar-horizontal '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)))
+;(resolve-same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "largura")
