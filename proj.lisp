@@ -309,8 +309,20 @@
 
 (defstruct node 
    board 
-   ;(actions '() (:type list))
+   points 
+
 )
+
+
+
+(defun pontuacao (n_balls)
+	(expt (- n_balls 2) 2)
+	
+)
+
+
+
+
 
 (defun lista-operadores (estado)
 	;(format t " Actions aqui5 ~%" )
@@ -322,26 +334,27 @@
 	(loop for v being the hash-value in possible_actions
       do 
       	(progn 
-      		(if (> (list-length v) 1)
+      		(setq n_pecas (list-length v))
+      		(format t " groups ~a ~%" v)
+      		(if (> n_pecas 1)
       			(progn 
 	      			;(format t " board ~a ~%" (node-board estado))
 	      			;(format t " group ~a ~%" v)
-	      			(setq suc-state (board_remove_group (node-board estado)  v))
-	      			(setq board-suc (make-node :board  suc-state))
+	      			(setq suc-state (board_remove_group (node-board estado)  v)) ;nao posso dar o estado, tenho de fazer copia
+	      			(setq board-suc (make-node :board  suc-state :points (pontuacao n_pecas)))
 	      			(setq actions (append actions (list board-suc)) )
 	      		)
       		)
-
-      	)
-      	
+      	)     	
       )
+	
     ;(setf (node-actions estado) actions)  
 	(format t " Actions ~a ~%" actions)
 	actions
 )
 
 
-(trace lista-operadores)
+;(trace lista-operadores)
 ;(defmethod objectivo? ((s SGState))
 ;	(format t " Actions aqui3 ~%" )
 ;	(setq idx_last_line (- (list-length (SGState-board s)) 1))
@@ -355,9 +368,16 @@
 ;)
 
 (defun objectivo? (state)
-	(<= (* MAX_TIME INTERNAL-TIME-UNITS-PER-SECOND) (- (get-internal-run-time) *start-clock*))
+	(setq flag (<= (* MAX_TIME INTERNAL-TIME-UNITS-PER-SECOND) (- (get-internal-run-time) *start-clock*)))
+	(if  flag 
+		(format t " result ~a ~%" (node-points state))
+		)
+	flag
 )
 
+
+
+;	)
 ;(defun custo ((c integer) (s1 SGState) (s2 SGState) (action list))
 ;	(format t " Actions aqui42 ~%" )
 ;	(+ c 1)
@@ -395,9 +415,10 @@
 (defun start-clock ()
 	(setq *start-clock* (get-internal-run-time)))
 
+
 (defun same-game (problema algoritmo)
   	(start-clock)
-	( setq board-init (make-node :board  problema))
+	( setq board-init (make-node :board  problema :points 0  ))
 	
 	(list_set_limits_size problema)
 	
@@ -419,6 +440,8 @@
  )
 
 
+(trace lista-operadores)
+(trace objectivo?)
 (same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "profundidade")
 
 (same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "largura")
