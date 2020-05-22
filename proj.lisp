@@ -233,7 +233,7 @@
 	(setq empList (make-hash-table)) 
 	(setq counter  0) 
 	(setq array_main (lista-convert-to-array board))
-	;;(setq *board_aux* (create-auxiliar-board)  )
+	(setq *board_aux* (create-auxiliar-board)  )
 
 	(dotimes (i *array_size_lin*)
 		(dotimes (j *array_size_col*)
@@ -340,7 +340,8 @@
       			(progn 
 	      			;(format t " board ~a ~%" (node-board estado))
 	      			;(format t " group ~a ~%" v)
-	      			(setq suc-state (board_remove_group (node-board estado)  v)) ;nao posso dar o estado, tenho de fazer copia
+	      			(setq copy_state (copy-seq (node-board estado) ))
+	      			(setq suc-state (board_remove_group copy_state  v)) ;nao posso dar o estado, tenho de fazer copia
 	      			(setq board-suc (make-node :board  suc-state :points (pontuacao n_pecas)))
 	      			(setq actions (append actions (list board-suc)) )
 	      		)
@@ -422,7 +423,7 @@
 	
 	(list_set_limits_size problema)
 	
-	(create-auxiliar-board)
+	;(create-auxiliar-board)
 	
     (cond              
                 (
@@ -441,7 +442,7 @@
 
 
 (trace lista-operadores)
-(trace objectivo?)
+;(trace objectivo?)
 (same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "profundidade")
 
 (same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "largura")
