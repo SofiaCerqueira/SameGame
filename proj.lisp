@@ -7,7 +7,7 @@
 (defvar *array_size_lin* )
 (defvar *board_aux* )
 (defvar *start-clock* )
-(defconstant MAX_TIME 300)
+(defconstant MAX_TIME 10)
 
 (defun transpose-board (board)
 	(setq new_list nil)
@@ -310,9 +310,12 @@
 (defstruct node 
    board 
    (points 0 :type integer)
-   (all-removed nil :type boolean) 
+   
    (depth 0 :type integer) ; a profundidade comeca em 0 ou 1
    (n_groups 0 :type integer)
+   n-balls
+   possible_actions
+
 
 )
 
@@ -336,11 +339,7 @@
 	;(format t " Actions aqui5 ~%" )
 
 	(setf possible_actions (find_color_blocks (node-board estado)))
-	;(if (= (hash-table-count possible_actions) 0)
-	;	(setf (node-all-removed estado) t)
-	;)
-	;(format t " Actions aqui7 ~%" )
-	;(format t " Actions ~a ~%" possible_actions)
+	
 	(setq actions NIL )
 	(loop for v being the hash-value in possible_actions
       do 
@@ -352,8 +351,9 @@
 	      			;(format t " board ~a ~%" (node-board estado))
 	      			;(format t " group ~a ~%" v)
 	      			(setq copy_state (copy-seq (node-board estado) ))
-	      			(setq suc-state (board_remove_group copy_state  v)) ;nao posso dar o estado, tenho de fazer copia
-	      			(setq board-suc (make-node :board  suc-state ))
+	      			(setq suc-state (board_remove_group copy_state  v)) 
+	      			(setq n_balls (- (node-n-balls estado)  n_pecas  ))
+	      			(setq board-suc (make-node :board  suc-state  :n-balls n_balls))
 	      			(setq antecessor-points (node-points estado))
       				(pontuacao board-suc antecessor-points n_pecas)
       				(profundidade board-suc (node-depth estado))
@@ -401,12 +401,29 @@
 ;	(+ c 1)
 ;)
 
-;escolhe o camnho com menos grupos
+;escolhe o camnho com menos grupos, vai escolher aquele que fica com mais clusters
 (defun heuristica1 (state)
 	(setf groups-ht (find_color_blocks (node-board state)))
+	;(setf (node-possible_actions) groups-ht )
 	(setf (node-n_groups state) (hash-table-count groups-ht) )
 	(node-n_groups state)	
 )
+
+(defun heuristica2 (state)	
+	(node-n-balls state)
+)
+
+(defun heuristica3 (state)
+(setf groups-ht (find_color_blocks (node-board state)))
+	(setf (node-n_groups state) (hash-table-count groups-ht) )
+	(+ (node-n_groups state) (node-n-balls state))		
+	
+)
+
+
+
+
+
 
 
 
@@ -432,7 +449,8 @@
 
 (defun same-game (problema algoritmo)
   	(start-clock)
-	( setq board-init (make-node :board  problema ))
+  	(setq n_balls (* (list-length (car problema)) (list-length  problema) ))
+	( setq board-init (make-node :board  problema :n-balls n_balls ))
 	
 	(list_set_limits_size problema)
 	
@@ -455,6 +473,11 @@
                	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
                		:heuristica #'heuristica2) "a*" :espaco-em-arvore? T)))
 
+                 ((string-equal algoritmo "a3*")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
+               		:heuristica #'heuristica3) "a*" :espaco-em-arvore? T)))
+
+
                  ((string-equal algoritmo "ida*")
                	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
                		:heuristica #'heuristica1) "ida*" :espaco-em-arvore? T)))
@@ -473,7 +496,8 @@
 (trace lista-operadores)
 (trace objectivo?)
 (trace heuristica1)
-
+(trace heuristica2)
+(trace heuristica3)
 (setq board1 '((2 1 3 2 3 3 2 3 3 3) (1 3 2 2 1 3 3 2 2 2) (1 3 1 3 2 2 2 1 2 1) (1 3 3 3 1 3 1 1 1 3)))
 
 (setq board '((5 1 1 1 2 1 4 2 1 2) (5 5 5 4 1 2 2 1 4 5) (5 5 3 5 5 3 1 5 4 3) (3 3 3 2 4 3 1 3 5 1)
@@ -482,9 +506,9 @@
 (3 1 3 4 4 1 5 1 5 4) (1 3 1 5 2 4 4 3 3 2) (4 2 4 2 2 5 3 1 2 1)))
 ;(same-game  board "profundidade")
 
-;(same-game board "largura")
+(same-game board1 "largura")
 
-(same-game board1 "a1*")
+;(same-game board1 "a3*")
 
 ;(same-game board "ida*")
 
