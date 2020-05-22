@@ -309,14 +309,15 @@
 
 (defstruct node 
    board 
-   points 
+   (points 0 :type integer)
+   (all-removed nil :type boolean) 
 
 )
 
 
 
-(defun pontuacao (n_balls)
-	(expt (- n_balls 2) 2)
+(defun pontuacao (state ant-points n_balls)
+	(setf (node-points state) (+ ant-points (expt (- n_balls 2) 2)))
 	
 )
 
@@ -328,6 +329,9 @@
 	;(format t " Actions aqui5 ~%" )
 
 	(setf possible_actions (find_color_blocks (node-board estado)))
+	(if (= (hash-table-count possible_actions) 0)
+		(setf (node-all-removed estado) t)
+	)
 	;(format t " Actions aqui7 ~%" )
 	;(format t " Actions ~a ~%" possible_actions)
 	(setq actions NIL )
@@ -342,7 +346,9 @@
 	      			;(format t " group ~a ~%" v)
 	      			(setq copy_state (copy-seq (node-board estado) ))
 	      			(setq suc-state (board_remove_group copy_state  v)) ;nao posso dar o estado, tenho de fazer copia
-	      			(setq board-suc (make-node :board  suc-state :points (pontuacao n_pecas)))
+	      			(setq board-suc (make-node :board  suc-state ))
+	      			(setq antecessor-points (node-points estado))
+      				(pontuacao board-suc antecessor-points n_pecas)
 	      			(setq actions (append actions (list board-suc)) )
 	      		)
       		)
@@ -351,11 +357,12 @@
 	
     ;(setf (node-actions estado) actions)  
 	(format t " Actions ~a ~%" actions)
+	
 	actions
 )
 
 
-;(trace lista-operadores)
+
 ;(defmethod objectivo? ((s SGState))
 ;	(format t " Actions aqui3 ~%" )
 ;	(setq idx_last_line (- (list-length (SGState-board s)) 1))
@@ -369,11 +376,24 @@
 ;)
 
 (defun objectivo? (state)
-	(setq flag (<= (* MAX_TIME INTERNAL-TIME-UNITS-PER-SECOND) (- (get-internal-run-time) *start-clock*)))
-	(if  flag 
-		(format t " result ~a ~%" (node-points state))
+	(setq flag1 t)
+	(setq flag2 (<= (* MAX_TIME INTERNAL-TIME-UNITS-PER-SECOND) (- (get-internal-run-time) *start-clock*)))
+	
+	
+	(setq idx_last_line (- (list-length (node-board state)) 1))
+	(setq line_board (nth idx_last_line (node-board state)))
+	(loop for pos in line_board do
+		(if (/= pos 0)
+			(setq flag1 nil)
 		)
-	flag
+	)
+	(if  ( or flag2 flag1)
+		;(format t " result ~a ~%" (node-points state))
+		(return-from objectivo? t)
+		)
+	(return-from objectivo? nil)
+
+
 )
 
 
@@ -384,22 +404,7 @@
 ;	(+ c 1)
 ;)
 
-;(defmethod result ((s SGState) (action list))
-;	(format t " Actions aqui ~%" )
-;	(setq b (board_remove_group (SGState-board s) action))
-;	(make-instance 'SGState :board b)
-;	(format t " Actions aqui2 ~%" )
-;)
 
-;(defparameter s1 (make-instance 'SGState :board '((1 0 4 0) (0 0 4 0) (3 0 4 0) (0 0 1 0)) ))
-;( list_set_limits_size '((1 0 4 0) (0 0 4 0) (3 0 4 0) (0 0 1 0)))
-;(create-auxiliar-board)
-;(actions s1)
-
-;(defparameter sg1 (make-instance 'SameGame :board '((1 1 4 0) (1 0 4 0) (3 0 4 0) (0 0 1 0)) ))
-;(create-auxiliar-board)
-;(setq remove_aux '((0 0) (0 1) (1 0)))
-;(write (SGState-board (result (SameGame-initial sg1) remove_aux))) (terpri)
 
 
 ;; ----------------------------------------------------------------------------------------------------------
@@ -419,15 +424,12 @@
 
 (defun same-game (problema algoritmo)
   	(start-clock)
-	( setq board-init (make-node :board  problema :points 0  ))
+	( setq board-init (make-node :board  problema ))
 	
 	(list_set_limits_size problema)
 	
-	;(create-auxiliar-board)
-	
     (cond              
-                (
-                (string-equal algoritmo "profundidade")
+                ((string-equal algoritmo "profundidade")
                  (time (procura (cria-problema board-init (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal) 
 									"profundidade" :espaco-em-arvore? T)))
                 
@@ -442,7 +444,7 @@
 
 
 (trace lista-operadores)
-;(trace objectivo?)
+(trace objectivo?)
 (same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "profundidade")
 
 (same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "largura")
