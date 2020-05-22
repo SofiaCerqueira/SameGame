@@ -143,7 +143,7 @@
 			;(format t " bb ~a ~a~%" bound_rigth bound_bottom)
 
 			;(format t " estou aqui ~%"  )
-			(if (> posx 0) 
+			(if (>= t_side 0) 
 				(progn 
 					;(format t " z1 ~a ~a~%" t_side posy)
 					(if (and ( = (get_value t_side posy array_board) color ) (not (list_is_member list-neighbors t_side posy )))
@@ -162,7 +162,7 @@
 				)
 			)
 			;(format t " estou aqui2 ~%"  )
-			(if  (> posy 0)  
+			(if  (>= l_side 0)  
 				(progn 
 					;(format t " z2 ~a ~a~%" posx  l_side)
 					(if (and ( = (get_value posx l_side array_board) color ) (not (list_is_member list-neighbors posx  l_side )))
@@ -336,9 +336,9 @@
 	;(format t " Actions aqui5 ~%" )
 
 	(setf possible_actions (find_color_blocks (node-board estado)))
-	(if (= (hash-table-count possible_actions) 0)
-		(setf (node-all-removed estado) t)
-	)
+	;(if (= (hash-table-count possible_actions) 0)
+	;	(setf (node-all-removed estado) t)
+	;)
 	;(format t " Actions aqui7 ~%" )
 	;(format t " Actions ~a ~%" possible_actions)
 	(setq actions NIL )
@@ -346,7 +346,7 @@
       do 
       	(progn 
       		(setq n_pecas (list-length v))
-      		(format t " groups ~a ~%" v)
+      		;(format t " groups ~a ~%" v)
       		(if (> n_pecas 1)
       			(progn 
 	      			;(format t " board ~a ~%" (node-board estado))
@@ -364,7 +364,7 @@
       )
 	
     ;(setf (node-actions estado) actions)  
-	(format t " Actions ~a ~%" actions)
+	;(format t " Actions ~a ~%" actions)
 	
 	actions
 )
@@ -400,12 +400,18 @@
 ;	(format t " Actions aqui42 ~%" )
 ;	(+ c 1)
 ;)
+
+;escolhe o camnho com menos grupos
 (defun heuristica1 (state)
 	(setf groups-ht (find_color_blocks (node-board state)))
 	(setf (node-n_groups state) (hash-table-count groups-ht) )
 	(node-n_groups state)	
 )
-	
+
+
+
+
+
 
 
 
@@ -440,12 +446,17 @@
                 (time (procura (cria-problema board-init (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal) 
 									"largura" :espaco-em-arvore? T)))
 
-                 ((string-equal algoritmo "a*")
-               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 0) 
+                 ((string-equal algoritmo "a1*")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
                		:heuristica #'heuristica1) "a*" :espaco-em-arvore? T)))
 
+                 (
+                 	(string-equal algoritmo "a2*")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
+               		:heuristica #'heuristica2) "a*" :espaco-em-arvore? T)))
+
                  ((string-equal algoritmo "ida*")
-               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 0) 
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
                		:heuristica #'heuristica1) "ida*" :espaco-em-arvore? T)))
 
                  ((string-equal algoritmo "profundidade-iterativa")
@@ -461,15 +472,21 @@
 
 (trace lista-operadores)
 (trace objectivo?)
+(trace heuristica1)
 
-(setq board '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) )
+(setq board1 '((2 1 3 2 3 3 2 3 3 3) (1 3 2 2 1 3 3 2 2 2) (1 3 1 3 2 2 2 1 2 1) (1 3 3 3 1 3 1 1 1 3)))
+
+(setq board '((5 1 1 1 2 1 4 2 1 2) (5 5 5 4 1 2 2 1 4 5) (5 5 3 5 5 3 1 5 4 3) (3 3 3 2 4 3 1 3 5 1)
+(5 3 4 2 2 2 2 1 3 1) (1 1 5 3 1 1 2 5 5 5) (4 2 5 1 4 5 4 1 1 1) (5 3 5 3 3 3 3 4 2 2)
+(2 3 3 2 5 4 3 4 4 4) (3 5 5 2 2 5 2 2 4 2) (1 4 2 3 2 4 5 5 4 2) (4 1 3 2 4 3 4 4 3 1)
+(3 1 3 4 4 1 5 1 5 4) (1 3 1 5 2 4 4 3 3 2) (4 2 4 2 2 5 3 1 2 1)))
 ;(same-game  board "profundidade")
 
 ;(same-game board "largura")
 
-;(same-game board "a*")
+(same-game board1 "a1*")
 
 ;(same-game board "ida*")
 
-(same-game board "profundidade-iterativa")
+;(same-game board "profundidade-iterativa")
 
