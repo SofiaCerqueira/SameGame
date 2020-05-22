@@ -311,6 +311,8 @@
    board 
    (points 0 :type integer)
    (all-removed nil :type boolean) 
+   (depth 0 :type integer) ; a profundidade comeca em 0 ou 1
+   (n_groups 0 :type integer)
 
 )
 
@@ -318,6 +320,11 @@
 
 (defun pontuacao (state ant-points n_balls)
 	(setf (node-points state) (+ ant-points (expt (- n_balls 2) 2)))
+	
+)
+
+(defun profundidade (state ant-depth)
+	(setf (node-depth state) (+ ant-depth 1))
 	
 )
 
@@ -349,6 +356,7 @@
 	      			(setq board-suc (make-node :board  suc-state ))
 	      			(setq antecessor-points (node-points estado))
       				(pontuacao board-suc antecessor-points n_pecas)
+      				(profundidade board-suc (node-depth estado))
 	      			(setq actions (append actions (list board-suc)) )
 	      		)
       		)
@@ -363,17 +371,6 @@
 
 
 
-;(defmethod objectivo? ((s SGState))
-;	(format t " Actions aqui3 ~%" )
-;	(setq idx_last_line (- (list-length (SGState-board s)) 1))
-;	(setq line_board (nth idx_last_line SGState-board s))
-;	(loop for pos in line_board do
-;		(if (/= pos 0)
-;			(return-from goal_test nil)
-;		)
-;	)
-;	t
-;)
 
 (defun objectivo? (state)
 	(setq flag1 t)
@@ -403,7 +400,12 @@
 ;	(format t " Actions aqui42 ~%" )
 ;	(+ c 1)
 ;)
-
+(defun heuristica1 (state)
+	(setf groups-ht (find_color_blocks (node-board state)))
+	(setf (node-n_groups state) (hash-table-count groups-ht) )
+	(node-n_groups state)	
+)
+	
 
 
 
@@ -430,13 +432,27 @@
 	
     (cond              
                 ((string-equal algoritmo "profundidade")
-                 (time (procura (cria-problema board-init (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal) 
+                (time (procura (cria-problema board-init (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal) 
 									"profundidade" :espaco-em-arvore? T)))
                 
                 
                 ((string-equal algoritmo "largura")
-                 (time (procura (cria-problema board-init (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal) 
+                (time (procura (cria-problema board-init (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal) 
 									"largura" :espaco-em-arvore? T)))
+
+                 ((string-equal algoritmo "a*")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 0) 
+               		:heuristica #'heuristica1) "a*" :espaco-em-arvore? T)))
+
+                 ((string-equal algoritmo "ida*")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 0) 
+               		:heuristica #'heuristica1) "ida*" :espaco-em-arvore? T)))
+
+                 ((string-equal algoritmo "profundidade-iterativa")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal)
+               			 "profundidade-iterativa" :espaco-em-arvore? T)))
+
+                
                 
  
     )
@@ -445,6 +461,15 @@
 
 (trace lista-operadores)
 (trace objectivo?)
-(same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "profundidade")
 
-(same-game '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) "largura")
+(setq board '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)) )
+;(same-game  board "profundidade")
+
+;(same-game board "largura")
+
+;(same-game board "a*")
+
+;(same-game board "ida*")
+
+(same-game board "profundidade-iterativa")
+
