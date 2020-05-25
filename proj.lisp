@@ -1,7 +1,7 @@
 (in-package :user)
 (compile-file "procura.lisp")
 (load "procura")
-;;https://github.com/srps/SameGame/blob/master/g012.lisp
+
 
 (defvar *array_size_col* )
 (defvar *array_size_lin* )
@@ -389,16 +389,48 @@
 
       	)     	
       )
-	( guarda_numero_ramos_gerados nr_ramos)
+	(guarda_numero_ramos_gerados nr_ramos)
     ;(setf (node-actions estado) actions)  
 	;(format t " Actions ~a ~%" actions)
+	;(format t " list lehght ~a ~%" (list-length actions ))
 	
-	actions
+	(return-from lista-operadores actions)
+)
+
+(defun choose_random (successors)
+ 	(setq num (random (list-length successors)))
+    (nth num successors)
+ )
+
+(defun sondagem_iterativa_recursao ( no )
+	(if (objectivo? no)
+		(return-from sondagem_iterativa_recursao no)
+	)
+	(setq successors (lista-operadores no))
+	(if ( =  (list-length successors) 0)
+		(return-from  sondagem_iterativa_recursao nil)
+		(progn 
+			(setq random_no (choose_random successors))
+			(return-from sondagem_iterativa_recursao (sondagem_iterativa_recursao random_no))
+
+		)
+	)
+
 )
 
 
+(defun sondagem_iterativa (estado)
+	;(setq result)
+	(loop 
+		(setq result (sondagem_iterativa_recursao estado) )
+		(if  (not (null  result))
+			(return result)
+		)
+	)
+)
 
 
+;(trace sondagem_iterativa_recursao)
 (defun objectivo? (state)
 	(setq flag1 t)
 	(setq flag2 (<= (* MAX_TIME INTERNAL-TIME-UNITS-PER-SECOND) (- (get-internal-run-time) *start-clock*)))
@@ -519,6 +551,11 @@
                	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal)
                			 "profundidade-iterativa" :espaco-em-arvore? T)))
 
+                ((string-equal algoritmo "si")
+                 (time (sondagem_iterativa board-init)))
+
+
+
                 
 				                
  
@@ -535,11 +572,11 @@
  )
 
 
-(trace lista-operadores)
-(trace objectivo?)
-(trace heuristica1)
-(trace heuristica2)
-(trace heuristica3)
+;(trace lista-operadores)
+;(trace objectivo?)
+;(trace heuristica1)
+;(trace heuristica2)
+;(trace heuristica3)
 (setq board1 '((2 1 3 2 3 3 2 3 3 3) (1 3 2 2 1 3 3 2 2 2) (1 3 1 3 2 2 2 1 2 1) (1 3 3 3 1 3 1 1 1 3)))
 
 (setq board '((5 1 1 1 2 1 4 2 1 2) (5 5 5 4 1 2 2 1 4 5) (5 5 3 5 5 3 1 5 4 3) (3 3 3 2 4 3 1 3 5 1)
@@ -550,7 +587,7 @@
 
 ;(same-game board1 "largura")
 
-(same-game board1 "a1*")
+(same-game board "si")
 
 ;(same-game board "ida*")
 
