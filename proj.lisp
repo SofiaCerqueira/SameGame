@@ -7,7 +7,31 @@
 (defvar *array_size_lin* )
 (defvar *board_aux* )
 (defvar *start-clock* )
-(defconstant MAX_TIME 10)
+
+
+
+(defvar *lista_ramos* '())
+(defvar *estado_terminal* nil)
+(defconstant MAX_TIME 280)
+(defvar *nos_gerados* 0 )
+(defvar *nos_expandidos* 0)
+
+(defun incr_nos_gerados (   )
+	(setq *nos_gerados* (+ *nos_gerados* 1))
+)
+
+(defun incr_nos_expandidos ()
+	(setq *nos_expandidos* (+ *nos_expandidos* 1))
+)
+
+
+(defun guarda_numero_ramos_gerados ( nr_ramos)
+	(setq *lista_ramos* (append  *lista_ramos* (list nr_ramos) ))
+)
+
+(defun mean_lista_ramos ()
+	( / (reduce '+ *lista_ramos*) ( list-length  *lista_ramos*) )
+)
 
 (defun transpose-board (board)
 	(setq new_list nil)
@@ -315,6 +339,7 @@
    (n_groups 0 :type integer)
    n-balls
    possible_actions
+ 
 
 
 )
@@ -337,19 +362,19 @@
 
 (defun lista-operadores (estado)
 	;(format t " Actions aqui5 ~%" )
-
+	(incr_nos_expandidos ) ; quando chamamos esta função lista operadores estamos a expandir o estado /operador
 	(setf possible_actions (find_color_blocks (node-board estado)))
-	
+	(setq nr_ramos 0)
 	(setq actions NIL )
 	(loop for v being the hash-value in possible_actions
       do 
       	(progn 
       		(setq n_pecas (list-length v))
       		;(format t " groups ~a ~%" v)
+
       		(if (> n_pecas 1)
       			(progn 
-	      			;(format t " board ~a ~%" (node-board estado))
-	      			;(format t " group ~a ~%" v)
+      				(incr_nos_gerados ) ; quando criamos novas intacias de estados estamos a gerar operadores/nos/estados
 	      			(setq copy_state (copy-seq (node-board estado) ))
 	      			(setq suc-state (board_remove_group copy_state  v)) 
 	      			(setq n_balls (- (node-n-balls estado)  n_pecas  ))
@@ -358,11 +383,13 @@
       				(pontuacao board-suc antecessor-points n_pecas)
       				(profundidade board-suc (node-depth estado))
 	      			(setq actions (append actions (list board-suc)) )
+	      			(incf nr_ramos)
 	      		)
       		)
+
       	)     	
       )
-	
+	( guarda_numero_ramos_gerados nr_ramos)
     ;(setf (node-actions estado) actions)  
 	;(format t " Actions ~a ~%" actions)
 	
@@ -386,7 +413,8 @@
 	)
 	(if  ( or flag2 flag1)
 		;(format t " result ~a ~%" (node-points state))
-		(return-from objectivo? t)
+		(progn (setq *estado_terminal* state)
+			   (return-from objectivo? t))
 		)
 	(return-from objectivo? nil)
 
@@ -416,7 +444,12 @@
 (defun heuristica3 (state)
 (setf groups-ht (find_color_blocks (node-board state)))
 	(setf (node-n_groups state) (hash-table-count groups-ht) )
-	(+ (node-n_groups state) (node-n-balls state))		
+
+	(if (<= (node-depth state) 3)
+		(return-from heuristica3 (node-n_groups state))
+		(return-from heuristica3 (node-n-balls state))
+
+	)	
 	
 )
 
@@ -487,9 +520,18 @@
                			 "profundidade-iterativa" :espaco-em-arvore? T)))
 
                 
-                
+				                
  
     )
+    
+	(format t "Resultados ~%")
+	(format t "Nos gerados: ~a ~%"   *nos_gerados*  )
+	(format t "Nos expandidos: ~a ~%" *nos_expandidos*)
+	(format t "Factor medio de ramificacao: ~a ~%" (mean_lista_ramos ))
+	(format t "Profundidade maxima: ~a ~%" (node-depth *estado_terminal*))
+	(format t "Pontuacao: ~a ~%" (node-points *estado_terminal*))
+    
+
  )
 
 
@@ -506,11 +548,15 @@
 (3 1 3 4 4 1 5 1 5 4) (1 3 1 5 2 4 4 3 3 2) (4 2 4 2 2 5 3 1 2 1)))
 ;(same-game  board "profundidade")
 
-(same-game board1 "largura")
+;(same-game board1 "largura")
 
-;(same-game board1 "a3*")
+(same-game board1 "a1*")
 
 ;(same-game board "ida*")
 
 ;(same-game board "profundidade-iterativa")
+
+
+
+
 
