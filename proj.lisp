@@ -16,7 +16,7 @@
 (defvar *nos_gerados* 0 )
 (defvar *nos_expandidos* 0)
 
-(defun incr_nos_gerados (   )
+(defun incr_nos_gerados ()
 	(setq *nos_gerados* (+ *nos_gerados* 1))
 )
 
@@ -25,7 +25,7 @@
 )
 
 
-(defun guarda_numero_ramos_gerados ( nr_ramos)
+(defun guarda_numero_ramos_gerados (nr_ramos)
 	(setq *lista_ramos* (append  *lista_ramos* (list nr_ramos) ))
 )
 
@@ -73,7 +73,6 @@
 		(setq non_zero_list nil)
 
 	)
-	; Era o nome das funções que estava trocada ou a string embaixo?
 	;(format t " Compacta vertical ~a ~%" total_list )	
 	(return-from compactar-horizontal total_list)
 )
@@ -339,26 +338,16 @@
    (n_groups 0 :type integer)
    n-balls
    possible_actions
- 
-
-
 )
 
 
-
 (defun pontuacao (state ant-points n_balls)
-	(setf (node-points state) (+ ant-points (expt (- n_balls 2) 2)))
-	
+	(setf (node-points state) (+ ant-points (expt (- n_balls 2) 2)))	
 )
 
 (defun profundidade (state ant-depth)
 	(setf (node-depth state) (+ ant-depth 1))
-	
 )
-
-
-
-
 
 (defun lista-operadores (estado)
 	;(format t " Actions aqui5 ~%" )
@@ -374,7 +363,7 @@
 
       		(if (> n_pecas 1)
       			(progn 
-      				(incr_nos_gerados ) ; quando criamos novas intacias de estados estamos a gerar operadores/nos/estados
+      				(incr_nos_gerados ) ; quando criamos novas instacias de estados estamos a gerar operadores/nos/estados
 	      			(setq copy_state (copy-seq (node-board estado) ))
 	      			(setq suc-state (board_remove_group copy_state  v)) 
 	      			(setq n_balls (- (node-n-balls estado)  n_pecas  ))
@@ -386,14 +375,12 @@
 	      			(incf nr_ramos)
 	      		)
       		)
-
       	)     	
       )
 	(guarda_numero_ramos_gerados nr_ramos)
     ;(setf (node-actions estado) actions)  
 	;(format t " Actions ~a ~%" actions)
 	;(format t " list lehght ~a ~%" (list-length actions ))
-	
 	(return-from lista-operadores actions)
 )
 
@@ -412,12 +399,9 @@
 		(progn 
 			(setq random_no (choose_random successors))
 			(return-from sondagem_iterativa_recursao (sondagem_iterativa_recursao random_no))
-
 		)
 	)
-
 )
-
 
 (defun sondagem_iterativa (estado)
 	;(setq result)
@@ -429,12 +413,10 @@
 	)
 )
 
-
 ;(trace sondagem_iterativa_recursao)
 (defun objectivo? (state)
 	(setq flag1 t)
 	(setq flag2 (<= (* MAX_TIME INTERNAL-TIME-UNITS-PER-SECOND) (- (get-internal-run-time) *start-clock*)))
-	
 	
 	(setq idx_last_line (- (list-length (node-board state)) 1))
 	(setq line_board (nth idx_last_line (node-board state)))
@@ -449,11 +431,7 @@
 			   (return-from objectivo? t))
 		)
 	(return-from objectivo? nil)
-
-
 )
-
-
 
 ;	)
 ;(defun custo ((c integer) (s1 SGState) (s2 SGState) (action list))
@@ -481,20 +459,36 @@
 		(return-from heuristica3 (node-n_groups state))
 		(return-from heuristica3 (node-n-balls state))
 
-	)	
-	
+	)
 )
 
+; ILDS - Improved Limited Discrepancy Seach
+(defun ILDS (node n)
+	(dotimes (k (+ n 1))
+		(setq result (ILDSProbe node k))
+		(if (/= result nil)
+			(return-from ILDS result)
+		)
+	)
+	nil
+)
 
-
-
-
-
-
-
-
-
-
+(defun ILDSProbe (node k rDepth)
+	(if (objectivo? node)
+		(return-from ILDSProbe node)
+	)
+	(if (failed node)
+		(return-from ILDSProbe nil)
+	)
+	(setq result nil)
+	(if (> rDepth k)
+		(setf result (ILDSProbe (left node) k (- rDepth 1)))
+		(if (and (> k 0) (= result nil))
+			(setf result (ILDSProbe (right node) (- k 1) (- rDepth 1)))
+		)
+	)
+	result
+)
 
 
 ;; ----------------------------------------------------------------------------------------------------------
@@ -554,11 +548,8 @@
                 ((string-equal algoritmo "si")
                  (time (sondagem_iterativa board-init)))
 
-
-
-                
-				                
- 
+                ((string-equal algoritmo "ilds")
+                	(time (ilds board-init)))
     )
     
 	(format t "Resultados ~%")
@@ -568,7 +559,6 @@
 	(format t "Profundidade maxima: ~a ~%" (node-depth *estado_terminal*))
 	(format t "Pontuacao: ~a ~%" (node-points *estado_terminal*))
     
-
  )
 
 
@@ -592,8 +582,4 @@
 ;(same-game board "ida*")
 
 ;(same-game board "profundidade-iterativa")
-
-
-
-
 
