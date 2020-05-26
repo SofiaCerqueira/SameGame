@@ -468,13 +468,51 @@
 
 		(defparameter adt nil) ; boolean for all discrepancies taken
 		(setf result (ILDSProbe node k n))
-		(if (or (/= result nil) (not adt))
+		(if (or (not (null result)) (not adt))
 			(return-from ILDS result)
 		)
 	)
 	nil
 )
 
+
+(defun extract_rigth_left_node ( successors )
+	(setq valueh 0)
+	(setq rigthchild nil)
+	(setq leftchild nil)
+	(dolist (n successors)
+		(setq new_valueh (heuristica1 n))
+		(if ( = leftchild nil)
+			(progn
+				(setq leftchild n)
+				(setq valueh new_valueh)
+			)
+			(progn 
+				(if (> new_valueh valueh )
+					(progn
+						(setq rigthchild leftchild)
+						(setq leftchild n)
+						(setq valueh new_valueh)
+					)
+					(progn 
+						(if (= rigthchild nil)
+							(setq rigthchild n)
+						)
+					)
+
+
+				)
+			)
+	(return-from extract_rigth_left_node (list leftchild rigthchild) )
+
+			(progn
+				(setq valueh new_valueh)
+				(setq leftchild n)
+				)
+		)
+	)
+
+)
 (defun ILDSProbe (node k rDepth)
 	;; rDepth- Remainder Depth over which discrepancies can be taken
 
@@ -488,10 +526,13 @@
 		(setq adt t)
 	)
 	(setq result nil)
-	(if (> k 0)
+	
+	(setq successors (lista-operadores no))
+	;extarir l r
+	(if ( or (> k 0) (= (list-length successors) 1)
 		(setf result (ILDSProbe (right-child node) (- k 1) (- rDepth 1)))
 	)
-	(if (and (> rDepth k) (= result nil))
+	(if (and (> rDepth k) (null result))
 		(setf result (ILDSProbe (left-child node) k (- rDepth 1)))
 	)
 	result
@@ -557,7 +598,7 @@
                  (time (sondagem_iterativa board-init)))
 
                 ((string-equal algoritmo "ilds")
-                	(time (ilds board-init)))
+                	(time (ilds board-init 3)))
     )
     
 	(format t "Resultados ~%")
@@ -570,7 +611,7 @@
  )
 
 
-;(trace lista-operadores)
+(trace lista-operadores)
 ;(trace objectivo?)
 ;(trace heuristica1)
 ;(trace heuristica2)
