@@ -426,9 +426,67 @@
 		(if  (not (null  result))
 			(return result)
 		)
+
+
 	)
 )
 
+
+(defun probe (no k l)
+	
+	(if (objectivo? no)
+		(return-from probe (list no 0))
+	)
+	
+	(setq successors (lista-operadores no))
+	(if (> k 0)
+		(setq successors (reverse successors ))
+	)
+	(setq i 0)
+	(setq counter 0)
+	(setq maxheight 0)
+	
+	(dolist (child successors)
+		(if (and (= k 0) (>= counter 1) )
+			(break)
+		)
+
+		(if (and (> k 0) (= i 0) )
+			(setq new_k (- k 1))
+			(setq new_k k)	
+		)
+		(format t " oi3 ~%")
+		(setq result_goal (probe child new_k l) )
+		(setq goal (car result_goal ))
+		(setq height (nth 1 result_goal ))
+		
+		(format t " oi ~a ~%" height)
+		(setq maxheight (max maxheight (+ 1 height)))
+		(format t " oi4 ~%")
+		(if  (not (null goal))
+			(return-from probe (list goal 0))
+		)
+		(setq i (+ i 1))
+		(if ( >= height l )
+			(setq counter (+ counter 1))
+		)
+	)
+
+	(return-from probe (list nil maxheight))
+)
+
+
+(defun LDS_BBS (root l max_depth)
+	(dotimes (n max_depth)
+		(setq result_goal (probe root n l))
+		(if  (not (null  (car result_goal)))
+			(return-from LDS_BBS (car result_goal))
+		)
+	)
+	(return-from LDS_BBS nil)
+	)
+
+(trace probe )
 
 ;(trace sondagem_iterativa_recursao)
 (defun objectivo? (state)
@@ -452,6 +510,7 @@
 
 
 )
+
 
 
 
@@ -554,6 +613,11 @@
                 ((string-equal algoritmo "si")
                  (time (sondagem_iterativa board-init)))
 
+                ((string-equal algoritmo "lds_bbs")
+                 (time (LDS_BBS board-init 5 13)))
+
+               
+
 
 
                 
@@ -587,7 +651,7 @@
 
 ;(same-game board1 "largura")
 
-(same-game board "si")
+(same-game board1 "lds_bbs")
 
 ;(same-game board "ida*")
 
