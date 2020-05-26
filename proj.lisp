@@ -351,7 +351,7 @@
 
 (defun lista-operadores (estado)
 	;(format t " Actions aqui5 ~%" )
-	(incr_nos_expandidos ) ; quando chamamos esta função lista operadores estamos a expandir o estado /operador
+	(incr_nos_expandidos ) ; quando chamamos esta função lista-operadores estamos a expandir o estado/operador
 	(setf possible_actions (find_color_blocks (node-board estado)))
 	(setq nr_ramos 0)
 	(setq actions NIL )
@@ -462,11 +462,13 @@
 	)
 )
 
-; ILDS - Improved Limited Discrepancy Seach
+;; ILDS- Improved Limited Discrepancy Seach, (slightly) modified
 (defun ILDS (node n)
 	(dotimes (k (+ n 1))
-		(setq result (ILDSProbe node k))
-		(if (/= result nil)
+
+		(defparameter adt nil) ; boolean for all discrepancies taken
+		(setf result (ILDSProbe node k n))
+		(if (or (/= result nil) (not adt))
 			(return-from ILDS result)
 		)
 	)
@@ -474,22 +476,28 @@
 )
 
 (defun ILDSProbe (node k rDepth)
-	(if (objectivo? node)
+	;; rDepth- Remainder Depth over which discrepancies can be taken
+
+	(if (objectivo? node)	; isGoal
 		(return-from ILDSProbe node)
 	)
 	(if (failed node)
 		(return-from ILDSProbe nil)
 	)
+	(if (= k 0)
+		(setq adt t)
+	)
 	(setq result nil)
-	(if (> rDepth k)
-		(setf result (ILDSProbe (left node) k (- rDepth 1)))
-		(if (and (> k 0) (= result nil))
-			(setf result (ILDSProbe (right node) (- k 1) (- rDepth 1)))
-		)
+	(if (> k 0)
+		(setf result (ILDSProbe (right-child node) (- k 1) (- rDepth 1)))
+	)
+	(if (and (> rDepth k) (= result nil))
+		(setf result (ILDSProbe (left-child node) k (- rDepth 1)))
 	)
 	result
 )
 
+; TODO: node, n, failed, left/right-child
 
 ;; ----------------------------------------------------------------------------------------------------------
 
