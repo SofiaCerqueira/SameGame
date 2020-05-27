@@ -567,24 +567,31 @@
 	nil
 )
 
-
 (defun extract_rigth_left_node (successors)
 	(setq new_value 0)
-	(setq rigth_child nil)
+	(setq right_child nil)
 	(setq left_child nil)
+	(setq rnode nil)
+	(setq lnode nil)
 
 	(dolist (n successors)
-		(setq new_value (heuristica1 n))
+		(setf new_value (heuristica1 n))
 		(cond
-			((= right_child nil)
+			((not right_child)
 				(setq right_child new_value)
+				(setq rnode n)
 			)
-			((= left_child nil)
-				(if (> right_value new_child)
-					(setq left_child new_value)
+			((not left_child)
+				(if (> right_child new_value)
+					(progn
+						(setq left_child new_value)
+						(setq lnode n)
+					)
 					(progn
 						(setq left_child right_child)
+						(setq lnode rnode)
 						(setq right_child new_value)
+						(setq rnode n)
 					)
 				)
 			)
@@ -600,7 +607,7 @@
 			)
 		)
 	)
-	(return-from extract_rigth_left_node (list right_child left_child))
+	(return-from extract_rigth_left_node (list rnode lnode))
 )
 
 (defun ILDSProbe (node k rDepth)
@@ -611,9 +618,9 @@
 	)
 	; if failed
 	(setq successors (lista-operadores node))
-	(if (= (list-length successors) 0)
-		(return-from ILDSProbe nil)
-	)
+	;(if (= (list-length successors) 0)
+	;	(return-from ILDSProbe nil)
+	;)
 	(if (= k 0)
 		(setq adt t)
 	)
@@ -626,11 +633,13 @@
 	(setq result nil)
 	(setf children (extract_rigth_left_node successors))
 
+	(terpri) (terpri) (write children)
+
 	;; extract left and right children
 	(if (> k 0)
 		(setf result (ILDSProbe (car children) (- k 1) (- rDepth 1)))
 	)
-	(if (and (> rDepth k) (null result))
+	(if (and (> rDepth k) (not result))
 		(setf result (ILDSProbe (cadr children) k (- rDepth 1)))
 	)
 	result
@@ -741,8 +750,9 @@
 
 ;(resolve-same-game board1 "lds_bbs")
 
-(resolve-same-game board0 "ida*")
-(resolve-same-game board0 "a*")
+;(resolve-same-game board0 "ida*")
+;(resolve-same-game board0 "a*")
+(resolve-same-game board0 "ilds")
 
 ;(resolve-same-game board "profundidade-iterativa")
 
