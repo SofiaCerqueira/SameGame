@@ -16,6 +16,8 @@
 (defvar *nos_gerados* 0 )
 (defvar *nos_expandidos* 0)
 
+(defvar *best_result* nil)
+
 (defun incr_nos_gerados ()
 	(setq *nos_gerados* (+ *nos_gerados* 1))
 )
@@ -337,7 +339,9 @@
    (depth 0 :type integer) ; a profundidade comeca em 0 ou 1
    (n_groups 0 :type integer)
    n-balls
-   possible_actions
+   (possible_actions nil :type boolean)
+   position_first_ball 
+   return_list_path
 )
 
 
@@ -349,30 +353,48 @@
 	(setf (node-depth state) (+ ant-depth 1))
 )
 
+(defun append_path_new_pos (board_state path  new_pos  )
+	(setf (node-return_list_path board_state) (append  path (list new_pos )))
+)
+
 (defun lista-operadores (estado)
 	;(format t " Actions aqui5 ~%" )
 	(incr_nos_expandidos ) ; quando chamamos esta função lista-operadores estamos a expandir o estado/operador
 	(setf possible_actions (find_color_blocks (node-board estado)))
+
 	(setq nr_ramos 0)
 	(setq actions NIL )
 	(loop for v being the hash-value in possible_actions
       do 
       	(progn 
       		(setq n_pecas (list-length v))
-      		;(format t " groups ~a ~%" v)
+      		
 
       		(if (> n_pecas 1)
       			(progn 
+      				(format t " groups ~a ~%" v)
+      				(setf node-possible_actions t)
       				(incr_nos_gerados ) ; quando criamos novas instacias de estados estamos a gerar operadores/nos/estados
 	      			(setq copy_state (copy-seq (node-board estado) ))
-	      			(setq suc-state (board_remove_group copy_state  v)) 
+	      			(setq suc-state (board_remove_group copy_state  v))
+
 	      			(setq n_balls (- (node-n-balls estado)  n_pecas  ))
 	      			(setq board-suc (make-node :board  suc-state  :n-balls n_balls))
+
 	      			(setq antecessor-points (node-points estado))
       				(pontuacao board-suc antecessor-points n_pecas)
       				(profundidade board-suc (node-depth estado))
+
 	      			(setq actions (append actions (list board-suc)) )
 	      			(incf nr_ramos)
+
+	      			;(setf (node-position_first_ball board-suc ) (car v) )
+	      			;(format t " groups ~a ~%" (node-position_first_ball board-suc ))
+	      			(setq path (node-return_list_path estado) )
+	      			(setq pos (car v) )
+	      			(append_path_new_pos board-suc path pos  )
+
+
 	      		)
       		)
       	)     	
@@ -471,12 +493,13 @@
 	(return-from LDS_BBS nil)
 	)
 
-(trace probe )
+;(trace probe )
 
 
 ;(trace sondagem_iterativa_recursao)
 (defun objectivo? (state)
 	(setq flag1 t)
+
 	(setq flag2 (<= (* MAX_TIME INTERNAL-TIME-UNITS-PER-SECOND) (- (get-internal-run-time) *start-clock*)))
 	
 	(setq idx_last_line (- (list-length (node-board state)) 1))
@@ -486,12 +509,19 @@
 			(setq flag1 nil)
 		)
 	)
+
+	(if ( < (node-points *best_result* ) (node-points state ))
+		(setq *best_result* state )
+	)
 	(if  ( or flag2 flag1)
 		;(format t " result ~a ~%" (node-points state))
-		(progn (setq *estado_terminal* state)
+		(progn (setq *estado_terminal* *best_result*)
 			   (return-from objectivo? t))
 		)
 	(return-from objectivo? nil)
+
+
+
 )
 
 
@@ -618,12 +648,13 @@
 	(setq *start-clock* (get-internal-run-time)))
 
 
-(defun same-game (problema algoritmo)
+(defun resolve-same-game (problema algoritmo)
   	(start-clock)
   	(setq n_balls (* (list-length (car problema)) (list-length  problema) ))
 	( setq board-init (make-node :board  problema :n-balls n_balls ))
-	
+	(setq *best_result* board-init )
 	(list_set_limits_size problema)
+	(setf (node-return_list_path board-init) '())
 	
     (cond              
                 ((string-equal algoritmo "profundidade")
@@ -681,28 +712,33 @@
 	(format t "Factor medio de ramificacao: ~a ~%" (mean_lista_ramos ))
 	(format t "Profundidade maxima: ~a ~%" (node-depth *estado_terminal*))
 	(format t "Pontuacao: ~a ~%" (node-points *estado_terminal*))
-    
+	(format t "Tabuleiro: ~a ~%" (node-board *estado_terminal*))
+	(format t "Caminho: ~a ~%" (node-return_list_path *estado_terminal*))
+
+    (node-return_list_path *estado_terminal*)
  )
 
 
-(trace lista-operadores)
+;(trace lista-operadores)
 ;(trace objectivo?)
 ;(trace heuristica1)
 ;(trace heuristica2)
 ;(trace heuristica3)
+(setq board0 '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)))
 (setq board1 '((2 1 3 2 3 3 2 3 3 3) (1 3 2 2 1 3 3 2 2 2) (1 3 1 3 2 2 2 1 2 1) (1 3 3 3 1 3 1 1 1 3)))
 
 (setq board '((5 1 1 1 2 1 4 2 1 2) (5 5 5 4 1 2 2 1 4 5) (5 5 3 5 5 3 1 5 4 3) (3 3 3 2 4 3 1 3 5 1)
 (5 3 4 2 2 2 2 1 3 1) (1 1 5 3 1 1 2 5 5 5) (4 2 5 1 4 5 4 1 1 1) (5 3 5 3 3 3 3 4 2 2)
 (2 3 3 2 5 4 3 4 4 4) (3 5 5 2 2 5 2 2 4 2) (1 4 2 3 2 4 5 5 4 2) (4 1 3 2 4 3 4 4 3 1)
 (3 1 3 4 4 1 5 1 5 4) (1 3 1 5 2 4 4 3 3 2) (4 2 4 2 2 5 3 1 2 1)))
-;(same-game  board "profundidade")
+(resolve-same-game  board0 "profundidade")
 
-;(same-game board1 "largura")
+;(resolve-same-game board1 "largura")
 
-(same-game board1 "lds_bbs")
+;(resolve-same-game board1 "lds_bbs")
 
-;(same-game board "ida*")
+(resolve-same-game board0 "ida*")
+(resolve-same-game board0 "a*")
 
-;(same-game board "profundidade-iterativa")
+;(resolve-same-game board "profundidade-iterativa")
 
