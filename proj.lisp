@@ -628,12 +628,9 @@
 	)
 	(return-from extract_rigth_left_node (list rnode lnode))
 )
-;(trace extract_rigth_left_node)
-;(trace ILDSProbe )
 
 ;###########################################################################################
 ;################################ OUTRAS FUNCOES AUXILIARES  ##############################
-
 
 (defun 2d-array-to-list (array)
   (setf lisa (loop for i below (array-dimension array 0)
@@ -645,6 +642,16 @@
 
 (defun start-clock ()
 	(setq *start-clock* (get-internal-run-time)))
+
+(defun matrixMax(lst)
+	(setq val nil)
+	(dolist (n lst)
+		(setq val (append val (list
+			(loop for el in n maximizing el)))
+		)
+	)
+	(return-from matrixMax (loop for el in val maximizing el))
+ )
 
 ;###########################################################################################
 ;######################## FUNCAO PRINCIPAL RESOLVE-SAME-GAME  ##############################
@@ -730,7 +737,7 @@
 				             
 
                 ((string-equal algoritmo "ilds")
-                	(time (ilds board-init 3)))
+                	(time (ilds board-init (matrixMax problema))))
 
     )
     ;#############################RELATORIO ##############################
@@ -743,9 +750,6 @@
 	;(format t "Tabuleiro: ~a ~%" (node-board *estado_terminal*))
 	;(format t "Caminho: ~a ~%" (node-return_list_path *estado_terminal*))
 	;######################################################################
-
-    
-
     
 	(return-from resolve-same-game (node-return_list_path *estado_terminal*))
 
@@ -825,3 +829,6 @@
 
 ;(write-line "abordagem.alternativa Board1:")
 ;(resolve-same-game (copy-tree board1) "abordagem.alternativa")
+
+;(write-line "abordagem.alternativa Board1:")
+;(resolve-same-game (copy-tree board4) "ilds")
