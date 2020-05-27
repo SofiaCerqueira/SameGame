@@ -306,26 +306,6 @@
 )
 
 
-;(defclass SGState()
-;	((_board
-;		:initarg :board
-;		:accessor SGState-board)
-;;	)
-;)
-
-;(defmethod lessThan ((o1 SGState) (o2 SGState))
-;	(< (list-length (SGState-board o1)) (list-length (SGState-board o2)) )
-;)
-
-
-;(defclass SameGame()	; FIXME inherits from Problem
-;	((_board :initarg :board :accessor SameGame-board)
-;	 (_initial :accessor SameGame-initial))
-;)
-
-;(defmethod initialize-instance :after ((o SameGame) &key)
-;	(setf (SameGame-initial o) (make-instance 'SGState :board (SameGame-board o)))
-;)
 
 
 (defstruct node 
@@ -686,7 +666,7 @@
 
     			((string-equal algoritmo "sondagem.iterativa")
                  (time (sondagem_iterativa board-init)))
-    			
+
     			 ((string-equal algoritmo "abordagem.alternativa")
                 	(time (ilds board-init 3)))
 
@@ -756,17 +736,10 @@
 	(format t "Tabuleiro: ~a ~%" (node-board *estado_terminal*))
 	(format t "Caminho: ~a ~%" (node-return_list_path *estado_terminal*))
 
-    (node-return_list_path *estado_terminal*)
+    
 
-    (setq *array_size_col* 0 )
-	(setq *array_size_lin* 0  )
-	(setq *lista_ramos* '())
-	(setq *estado_terminal* nil)
-	
-	(setq *nos_gerados* 0 )
-	(setq *nos_expandidos* 0)
-
-	(setq *best_result*  nil)
+    
+	(return-from resolve-same-game (node-return_list_path *estado_terminal*))
 
  )
 
@@ -828,5 +801,5 @@
 ;	(incf counter_x)
 ;)
 
-(write-line "sondagem Iterativa Board2:")
-(resolve-same-game (copy-tree board2) "si")
+(write-line "sondagem Iterativa Board1:")
+(resolve-same-game (copy-tree board1) "si")
