@@ -326,11 +326,7 @@
 ;(defmethod initialize-instance :after ((o SameGame) &key)
 ;	(setf (SameGame-initial o) (make-instance 'SGState :board (SameGame-board o)))
 ;)
-; Este constructor todo só para ter:
-; class same_game(Problem):
-; 	def __init__(self, b):
-; 		self.board = b
-;		self.initial = SGState(b)
+
 
 (defstruct node 
    board 
@@ -462,14 +458,11 @@
 			(setq new_k (- k 1))
 			(setq new_k k)	
 		)
-		(format t " oi3 ~%")
 		(setq result_goal (probe child new_k l) )
 		(setq goal (car result_goal ))
 		(setq height (nth 1 result_goal ))
 		
-		(format t " oi ~a ~%" height)
 		(setq maxheight (max maxheight (+ 1 height)))
-		(format t " oi4 ~%")
 		(if  (not (null goal))
 			(return-from probe (list goal 0))
 		)
@@ -567,6 +560,45 @@
 	nil
 )
 
+(defun ILDSProbe (node k rDepth)
+	;; rDepth- Remainder Depth over which discrepancies can be taken
+
+	(if (objectivo? node)	; isGoal
+		(return-from ILDSProbe node)
+	)
+	;; if failed
+	;(if (= (list-length successors) 0)
+	;	(return-from ILDSProbe nil)
+	;)
+	
+	(setq successors (lista-operadores node))
+	
+	(if (= k 0)
+		(setq adt t)
+	)
+
+	;; if node has only one child
+	(if (= (list-length successors) 1)
+		(progn 
+			(return-from ILDSProbe (ILDSProbe (car successors) (- k 1) (- rDepth 1)) )
+		)
+		
+	)
+	(setq result nil)
+	(setf children (extract_rigth_left_node successors))
+	
+	(terpri) (terpri) (write children)
+	
+	;; extract left and right children
+	(if (> k 0)
+		(setf result (ILDSProbe (car children) (- k 1) (- rDepth 1)))
+	)
+	(if (and (> rDepth k) (not result))
+		(setf result (ILDSProbe (cadr children) k (- rDepth 1)))
+	)
+	result
+)
+
 (defun extract_rigth_left_node (successors)
 	(setq new_value 0)
 	(setq right_child nil)
@@ -610,45 +642,6 @@
 	(return-from extract_rigth_left_node (list rnode lnode))
 )
 
-(defun ILDSProbe (node k rDepth)
-	;; rDepth- Remainder Depth over which discrepancies can be taken
-
-	(if (objectivo? node)	; isGoal
-		(return-from ILDSProbe node)
-	)
-	; if failed
-	(setq successors (lista-operadores node))
-	
-	;(if (= (list-length successors) 0)
-	;	(return-from ILDSProbe nil)
-	;)
-	(if (= k 0)
-		(setq adt t)
-	)
-
-	;; if node has only one child
-	(if (= (list-length successors) 1)
-		(progn 
-		(return-from ILDSProbe (ILDSProbe (car successors) (- k 1) (- rDepth 1)) )
-		)
-		
-	)
-	
-	(setq result nil)
-	(setf children (extract_rigth_left_node successors))
-	
-	(terpri) (terpri) (write children)
-	
-	;; extract left and right children
-	(if (> k 0)
-		(setf result (ILDSProbe (car children) (- k 1) (- rDepth 1)))
-	)
-	(if (and (> rDepth k) (not result))
-		(setf result (ILDSProbe (cadr children) k (- rDepth 1)))
-	)
-	result
-)
-
 
 ;; ----------------------------------------------------------------------------------------------------------
 
@@ -668,7 +661,7 @@
 (defun resolve-same-game (problema algoritmo)
   	(start-clock)
   	(setq n_balls (* (list-length (car problema)) (list-length  problema) ))
-	( setq board-init (make-node :board  problema :n-balls n_balls ))
+	(setq board-init (make-node :board  problema :n-balls n_balls ))
 	(setq *best_result* board-init )
 	(list_set_limits_size problema)
 	(setf (node-return_list_path board-init) '())
@@ -711,18 +704,12 @@
 
                 ((string-equal algoritmo "lds_bbs")
                  (time (LDS_BBS board-init 5 13)))
-
-               
-
-
-
-                
 				             
+
                 ((string-equal algoritmo "ilds")
                 	(time (ilds board-init 3)))
 
     )
-    
 	(format t "Resultados ~%")
 	(format t "Nos gerados: ~a ~%"   *nos_gerados*  )
 	(format t "Nos expandidos: ~a ~%" *nos_expandidos*)
@@ -741,22 +728,53 @@
 ;(trace heuristica1)
 ;(trace heuristica2)
 ;(trace heuristica3)
-(setq board0 '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)))
-(setq board1 '((2 1 3 2 3 3 2 3 3 3) (1 3 2 2 1 3 3 2 2 2) (1 3 1 3 2 2 2 1 2 1) (1 3 3 3 1 3 1 1 1 3)))
+;(setq board0 '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)))
 
-(setq board '((5 1 1 1 2 1 4 2 1 2) (5 5 5 4 1 2 2 1 4 5) (5 5 3 5 5 3 1 5 4 3) (3 3 3 2 4 3 1 3 5 1)
-(5 3 4 2 2 2 2 1 3 1) (1 1 5 3 1 1 2 5 5 5) (4 2 5 1 4 5 4 1 1 1) (5 3 5 3 3 3 3 4 2 2)
-(2 3 3 2 5 4 3 4 4 4) (3 5 5 2 2 5 2 2 4 2) (1 4 2 3 2 4 5 5 4 2) (4 1 3 2 4 3 4 4 3 1)
-(3 1 3 4 4 1 5 1 5 4) (1 3 1 5 2 4 4 3 3 2) (4 2 4 2 2 5 3 1 2 1)))
-;(resolve-same-game  board0 "profundidade")
+; Tabuleiros do enunciado:
+(setq board1 '((2 1 3 2 3 3 2 3 3 3) (1 3 2 2 1 3 3 2 2 2) (1 3 1 3 2 2 2 1 2 1) (1 3 3 3 1 3 1 1 1 3)) )
 
-;(resolve-same-game board1 "largura")
+(setq board2 '((4 3 3 1 2 5 1 2 1 5) (2 4 4 4 1 5 2 4 1 2) (5 2 4 1 4 5 1 2 5 4) (1 3 1 4 2 5 2 5 4 5)) )
+(setq board3 '((3 3 3 2 1 2 3 1 3 1) (1 1 2 3 3 1 1 1 3 1) (3 3 1 2 1 1 3 2 1 1) (3 3 2 3 3 1 3 3 2 2) 
+			   (3 2 2 2 3 3 2 1 2 2) (3 1 2 2 2 2 1 2 1 3) (2 3 2 1 2 1 1 2 2 1) (2 2 3 1 1 1 3 2 1 3) 
+			   (1 3 3 1 1 2 3 1 3 1) (2 1 2 2 1 3 1 1 2 3) (2 1 1 3 3 3 1 2 3 1) (1 2 1 1 3 2 2 1 2 2) 
+			   (2 1 3 2 1 2 1 3 2 3) (1 2 1 3 1 2 2 3 2 3) (3 3 1 2 3 1 1 2 3 1)) )
 
-;(resolve-same-game board1 "lds_bbs")
+(setq board4 '((5 1 1 1 2 1 4 2 1 2) (5 5 5 4 1 2 2 1 4 5) (5 5 3 5 5 3 1 5 4 3) (3 3 3 2 4 3 1 3 5 1)
+			   (5 3 4 2 2 2 2 1 3 1) (1 1 5 3 1 1 2 5 5 5) (4 2 5 1 4 5 4 1 1 1) (5 3 5 3 3 3 3 4 2 2)
+			   (2 3 3 2 5 4 3 4 4 4) (3 5 5 2 2 5 2 2 4 2) (1 4 2 3 2 4 5 5 4 2) (4 1 3 2 4 3 4 4 3 1)
+			   (3 1 3 4 4 1 5 1 5 4) (1 3 1 5 2 4 4 3 3 2) (4 2 4 2 2 5 3 1 2 1)) )
 
-;(resolve-same-game board0 "ida*")
-;(resolve-same-game board0 "a*")
-(resolve-same-game board0 "ilds")
+(setq boards (list board1 board2 board3 board4))
 
-;(resolve-same-game board "profundidade-iterativa")
+(terpri)
+(write-line "Valores das soluções para diferentes estratégias:")
 
+(defparameter counter 1)
+(loop for board in boards do
+	(terpri) (format t "Board ~a: ~%" counter)
+	(write board) (terpri)(terpri)
+
+	(write-line "Profundidade:")
+	;(resolve-same-game (copy-tree board) "profundidade")
+	(terpri)
+	(write-line "Profundidade Iterativa:")
+	;(resolve-same-game (copy-tree board) "profundidade-iterativa")
+	(terpri)
+	(write-line "Largura:")
+	;(resolve-same-game (copy-tree board) "largura")
+	(terpri)
+	(write-line "IDA*:")
+	;(resolve-same-game (copy-tree board) "ida*")
+	(terpri)
+	(write-line "A:")
+	;(resolve-same-game (copy-tree board) "a*")
+	(terpri)
+	(write-line "LDS BBS:")
+	;(resolve-same-game (copy-tree board) "lds_bbs")
+	(terpri)
+	(write-line "ILDS:")
+	;(resolve-same-game (copy-tree board) "ilds")
+	(terpri)
+
+	(incf counter)
+)
