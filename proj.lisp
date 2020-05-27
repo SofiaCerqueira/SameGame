@@ -823,5 +823,5 @@
 ;(write-line "sondagem.iterativa Board1:")
 ;(resolve-same-game (copy-tree board1) "sondagem.iterativa")
 
-;(write-line "abordagem.alternativa Board1:")
-;(resolve-same-game (copy-tree board1) "abordagem.alternativa")
+;(write-line "abordagem.alternativa Board4:")
+;(resolve-same-game (copy-tree board4) "abordagem.alternativa")
