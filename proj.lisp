@@ -766,7 +766,7 @@
 ;(setq board0 '((1 2 2 3 3) (2 2 2 1 3) (1 2 2 2 2) (1 1 1 1 1)))
 
 ; Tabuleiros do enunciado:
-(setq board1 '((2 1 3 2 3 3 2 3 3 3) (1 3 2 2 1 3 3 2 2 2) (1 3 1 3 2 2 2 1 2 1) (1 3 3 3 1 3 1 1 1 3)) )
+;(setq board1 '((2 1 3 2 3 3 2 3 3 3) (1 3 2 2 1 3 3 2 2 2) (1 3 1 3 2 2 2 1 2 1) (1 3 3 3 1 3 1 1 1 3)) )
 
 ;(setq board2 '((4 3 3 1 2 5 1 2 1 5) (2 4 4 4 1 5 2 4 1 2) (5 2 4 1 4 5 1 2 5 4) (1 3 1 4 2 5 2 5 4 5)) )
 
@@ -834,6 +834,6 @@
 ;(write-line "abordagem.alternativa Board1:")
 ;(resolve-same-game (copy-tree board1) "abordagem.alternativa")
 
-(write-line "abordagem.alternativa Board1:")
-(resolve-same-game (copy-tree board1) "ilds")
+;(write-line "abordagem.alternativa Board1:")
+;(resolve-same-game (copy-tree board1) "ilds")
 
