@@ -568,7 +568,7 @@
 )
 
 
-(defun extract_rigth_left_node ( successors )
+(defun extract_rigth_left_node (successors)
 	(setq new_value 0)
 	(setq rigth_child nil)
 	(setq left_child nil)
@@ -579,17 +579,16 @@
 			((= right_child nil)
 				(setq right_child new_value)
 			)
-			((= right_child nil)
-				(if (> new_value left_child)
-					(setq right_child new_value)
+			((= left_child nil)
+				(if (> right_value new_child)
+					(setq left_child new_value)
 					(progn
-						(setq right_child left_child)
-						(setq left_child new_value)
+						(setq left_child right_child)
+						(setq right_child new_value)
 					)
 				)
 			)
-			(t
-				(cond
+			(t (cond
 					((> new_value right_child)
 						(setq left_child right_child)
 						(setq right_child new_value)
@@ -610,7 +609,9 @@
 	(if (objectivo? node)	; isGoal
 		(return-from ILDSProbe node)
 	)
-	(if (failed node)
+	; if failed
+	(setq successors (lista-operadores node))
+	(if (= (list-length successors) 0)
 		(return-from ILDSProbe nil)
 	)
 	(if (= k 0)
@@ -618,7 +619,6 @@
 	)
 
 	;; if node has only one child
-	(setq successors (lista-operadores node))
 	(if (= (list-length successors) 1)
 		(return-from ILDSProbe (ILDSProbe successors (- k 1) (- rDepth 1)) )
 	)
