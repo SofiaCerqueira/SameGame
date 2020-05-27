@@ -372,7 +372,7 @@
 
       		(if (> n_pecas 1)
       			(progn 
-      				(format t " groups ~a ~%" v)
+      				;(format t " groups ~a ~%" v)
       				(setf node-possible_actions t)
       				(incr_nos_gerados ) ; quando criamos novas instacias de estados estamos a gerar operadores/nos/estados
 	      			(setq copy_state (copy-seq (node-board estado) ))
@@ -573,7 +573,7 @@
 	(setq left_child nil)
 	(setq rnode nil)
 	(setq lnode nil)
-
+	
 	(dolist (n successors)
 		(setf new_value (heuristica1 n))
 		(cond
@@ -618,6 +618,7 @@
 	)
 	; if failed
 	(setq successors (lista-operadores node))
+	
 	;(if (= (list-length successors) 0)
 	;	(return-from ILDSProbe nil)
 	;)
@@ -627,14 +628,17 @@
 
 	;; if node has only one child
 	(if (= (list-length successors) 1)
-		(return-from ILDSProbe (ILDSProbe successors (- k 1) (- rDepth 1)) )
+		(progn 
+		(return-from ILDSProbe (ILDSProbe (car successors) (- k 1) (- rDepth 1)) )
+		)
+		
 	)
-
+	
 	(setq result nil)
 	(setf children (extract_rigth_left_node successors))
-
+	
 	(terpri) (terpri) (write children)
-
+	
 	;; extract left and right children
 	(if (> k 0)
 		(setf result (ILDSProbe (car children) (- k 1) (- rDepth 1)))
@@ -744,7 +748,7 @@
 (5 3 4 2 2 2 2 1 3 1) (1 1 5 3 1 1 2 5 5 5) (4 2 5 1 4 5 4 1 1 1) (5 3 5 3 3 3 3 4 2 2)
 (2 3 3 2 5 4 3 4 4 4) (3 5 5 2 2 5 2 2 4 2) (1 4 2 3 2 4 5 5 4 2) (4 1 3 2 4 3 4 4 3 1)
 (3 1 3 4 4 1 5 1 5 4) (1 3 1 5 2 4 4 3 3 2) (4 2 4 2 2 5 3 1 2 1)))
-(resolve-same-game  board0 "profundidade")
+;(resolve-same-game  board0 "profundidade")
 
 ;(resolve-same-game board1 "largura")
 
