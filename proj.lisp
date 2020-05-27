@@ -539,41 +539,39 @@
 
 
 (defun extract_rigth_left_node ( successors )
-	(setq valueh 0)
-	(setq rigthchild nil)
-	(setq leftchild nil)
+	(setq new_value 0)
+	(setq rigth_child nil)
+	(setq left_child nil)
+
 	(dolist (n successors)
-		(setq new_valueh (heuristica1 n))
-		(if ( = leftchild nil)
-			(progn
-				(setq leftchild n)
-				(setq valueh new_valueh)
+		(setq new_value (heuristica1 n))
+		(cond
+			((= right_child nil)
+				(setq right_child new_value)
 			)
-			(progn 
-				(if (> new_valueh valueh )
+			((= right_child nil)
+				(if (> new_value left_child)
+					(setq right_child new_value)
 					(progn
-						(setq rigthchild leftchild)
-						(setq leftchild n)
-						(setq valueh new_valueh)
+						(setq right_child left_child)
+						(setq left_child new_value)
 					)
-					(progn 
-						(if (= rigthchild nil)
-							(setq rigthchild n)
-						)
-					)
-
-
 				)
 			)
-	(return-from extract_rigth_left_node (list leftchild rigthchild) )
-
-			(progn
-				(setq valueh new_valueh)
-				(setq leftchild n)
+			(t
+				(cond
+					((> new_value right_child)
+						(setq left_child right_child)
+						(setq right_child new_value)
+					)
+					((> new_value left_child)
+						(setq left_child new_value)
+					)
 				)
+			)
 		)
 	)
-
+	(return-from extract_rigth_left_node (list right_child left_child))
 )
 
 (defun ILDSProbe (node k rDepth)
@@ -588,20 +586,26 @@
 	(if (= k 0)
 		(setq adt t)
 	)
+
+	;; if node has only one child
+	(setq successors (lista-operadores node))
+	(if (= (list-length successors) 1)
+		(return-from ILDSProbe (ILDSProbe successors (- k 1) (- rDepth 1)) )
+	)
+
 	(setq result nil)
-	
-	(setq successors (lista-operadores no))
-	;extarir l r
-	(if ( or (> k 0) (= (list-length successors) 1)
-		(setf result (ILDSProbe (right-child node) (- k 1) (- rDepth 1)))
-	))
+	(setf children (extract_rigth_left_node successors))
+
+	;; extract left and right children
+	(if (> k 0)
+		(setf result (ILDSProbe (car children) (- k 1) (- rDepth 1)))
+	)
 	(if (and (> rDepth k) (null result))
-		(setf result (ILDSProbe (left-child node) k (- rDepth 1)))
+		(setf result (ILDSProbe (cadr children) k (- rDepth 1)))
 	)
 	result
 )
 
-; TODO: node, n, failed, left/right-child
 
 ;; ----------------------------------------------------------------------------------------------------------
 
