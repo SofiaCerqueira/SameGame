@@ -3,20 +3,20 @@
 (load "procura")
 
 
-(defvar *array_size_col* )
-(defvar *array_size_lin* )
+(defvar *array_size_col* 0 )
+(defvar *array_size_lin* 0  )
 (defvar *board_aux* )
 (defvar *start-clock* )
 
 
 
 (defvar *lista_ramos* '())
-(defvar *estado_terminal* nil)
-(defconstant MAX_TIME 280)
+(defvar *estado_terminal* )
+(defconstant MAX_TIME 300)
 (defvar *nos_gerados* 0 )
 (defvar *nos_expandidos* 0)
 
-(defvar *best_result* nil)
+(defvar *best_result* )
 
 (defun incr_nos_gerados ()
 	(setq *nos_gerados* (+ *nos_gerados* 1))
@@ -504,7 +504,11 @@
 	)
 
 	(if ( < (node-points *best_result* ) (node-points state ))
-		(setq *best_result* state )
+		(progn 
+			(setq *best_result* state )
+			(setq *estado_terminal* *best_result*)
+
+		)
 	)
 	(if  ( or flag2 flag1)
 		;(format t " result ~a ~%" (node-points state))
@@ -516,7 +520,7 @@
 
 
 )
-
+;(trace objectivo?)
 
 ;	)
 ;(defun custo ((c integer) (s1 SGState) (s2 SGState) (action list))
@@ -666,7 +670,31 @@
 	(list_set_limits_size problema)
 	(setf (node-return_list_path board-init) '())
 	
-    (cond              
+    (cond        
+    			((string-equal algoritmo "melhor.abordagem")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
+               		:heuristica #'heuristica1) "a*" :espaco-em-arvore? T)))
+
+
+    			((string-equal algoritmo "a*.melhor.heuristica")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
+               		:heuristica #'heuristica1) "a*" :espaco-em-arvore? T)))
+
+    			((string-equal algoritmo "a*.melhor.heuristica.alternativa")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
+               		:heuristica #'heuristica2) "a*" :espaco-em-arvore? T)))
+
+    			((string-equal algoritmo "sondagem.iterativa")
+                 (time (sondagem_iterativa board-init)))
+    			
+    			 ((string-equal algoritmo "abordagem.alternativa")
+                	(time (ilds board-init 3)))
+
+
+
+
+
+    			;IGNORAR condicoes seguintes, realizadas para testes      
                 ((string-equal algoritmo "profundidade")
                 (time (procura (cria-problema board-init (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal) 
 									"profundidade" :espaco-em-arvore? T)))
@@ -690,9 +718,18 @@
                		:heuristica #'heuristica3) "a*" :espaco-em-arvore? T)))
 
 
-                 ((string-equal algoritmo "ida*")
+                 ((string-equal algoritmo "ida1*")
                	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
                		:heuristica #'heuristica1) "ida*" :espaco-em-arvore? T)))
+
+                 ((string-equal algoritmo "ida2*")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
+               		:heuristica #'heuristica2) "ida*" :espaco-em-arvore? T)))
+
+                 ((string-equal algoritmo "ida3*")
+               	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :custo (always 1) 
+               		:heuristica #'heuristica3) "ida*" :espaco-em-arvore? T)))
+
 
                  ((string-equal algoritmo "profundidade-iterativa")
                	(time (procura (cria-problema board-init  (list #'lista-operadores) :objectivo? #'objectivo? :estado= #'equal)
@@ -720,6 +757,17 @@
 	(format t "Caminho: ~a ~%" (node-return_list_path *estado_terminal*))
 
     (node-return_list_path *estado_terminal*)
+
+    (setq *array_size_col* 0 )
+	(setq *array_size_lin* 0  )
+	(setq *lista_ramos* '())
+	(setq *estado_terminal* nil)
+	
+	(setq *nos_gerados* 0 )
+	(setq *nos_expandidos* 0)
+
+	(setq *best_result*  nil)
+
  )
 
 
@@ -734,6 +782,7 @@
 (setq board1 '((2 1 3 2 3 3 2 3 3 3) (1 3 2 2 1 3 3 2 2 2) (1 3 1 3 2 2 2 1 2 1) (1 3 3 3 1 3 1 1 1 3)) )
 
 (setq board2 '((4 3 3 1 2 5 1 2 1 5) (2 4 4 4 1 5 2 4 1 2) (5 2 4 1 4 5 1 2 5 4) (1 3 1 4 2 5 2 5 4 5)) )
+
 (setq board3 '((3 3 3 2 1 2 3 1 3 1) (1 1 2 3 3 1 1 1 3 1) (3 3 1 2 1 1 3 2 1 1) (3 3 2 3 3 1 3 3 2 2) 
 			   (3 2 2 2 3 3 2 1 2 2) (3 1 2 2 2 2 1 2 1 3) (2 3 2 1 2 1 1 2 2 1) (2 2 3 1 1 1 3 2 1 3) 
 			   (1 3 3 1 1 2 3 1 3 1) (2 1 2 2 1 3 1 1 2 3) (2 1 1 3 3 3 1 2 3 1) (1 2 1 1 3 2 2 1 2 2) 
@@ -744,37 +793,40 @@
 			   (2 3 3 2 5 4 3 4 4 4) (3 5 5 2 2 5 2 2 4 2) (1 4 2 3 2 4 5 5 4 2) (4 1 3 2 4 3 4 4 3 1)
 			   (3 1 3 4 4 1 5 1 5 4) (1 3 1 5 2 4 4 3 3 2) (4 2 4 2 2 5 3 1 2 1)) )
 
-(setq boards (list board1 board2 board3 board4))
+(setq boards (list  board1 board2 board3 ))
 
 (terpri)
 (write-line "Valores das soluções para diferentes estratégias:")
 
-(defparameter counter 1)
-(loop for board in boards do
-	(terpri) (format t "Board ~a: ~%" counter)
-	(write board) (terpri)(terpri)
+;(defparameter counter_x 1)
+;(loop for board in boards do
+;	(terpri) (format t "Board ~a: ~%" counter_x)
+;	(write board) (terpri)(terpri)
+;
+;	(write-line "Profundidade:")
+;	(resolve-same-game (copy-tree board) "profundidade")
+;	(terpri)
+;	(write-line "Profundidade Iterativa:")
+;	;(resolve-same-game (copy-tree board) "profundidade-iterativa")
+;	(terpri)
+;	(write-line "Largura:")
+;	;(resolve-same-game (copy-tree board) "largura")
+;	(terpri)
+;	(write-line "IDA*:")
+;	;(resolve-same-game (copy-tree board) "ida*")
+;	(terpri)
+;	(write-line "A:")
+;	;(resolve-same-game (copy-tree board) "a*")
+;	(terpri)
+;	(write-line "LDS BBS:")
+;	;(resolve-same-game (copy-tree board) "lds_bbs")
+;	(terpri)
+;	(write-line "ILDS:")
+;	;(resolve-same-game (copy-tree board) "ilds")
+;	(terpri)
+;
+;	(incf counter_x)
+;)
 
-	(write-line "Profundidade:")
-	;(resolve-same-game (copy-tree board) "profundidade")
-	(terpri)
-	(write-line "Profundidade Iterativa:")
-	;(resolve-same-game (copy-tree board) "profundidade-iterativa")
-	(terpri)
-	(write-line "Largura:")
-	;(resolve-same-game (copy-tree board) "largura")
-	(terpri)
-	(write-line "IDA*:")
-	;(resolve-same-game (copy-tree board) "ida*")
-	(terpri)
-	(write-line "A:")
-	;(resolve-same-game (copy-tree board) "a*")
-	(terpri)
-	(write-line "LDS BBS:")
-	;(resolve-same-game (copy-tree board) "lds_bbs")
-	(terpri)
-	(write-line "ILDS:")
-	;(resolve-same-game (copy-tree board) "ilds")
-	(terpri)
-
-	(incf counter)
-)
+(write-line "sondagem Iterativa Board2:")
+(resolve-same-game (copy-tree board2) "si")
